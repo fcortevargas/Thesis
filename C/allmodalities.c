@@ -56,9 +56,7 @@ void AccelerateForward_N_N_N(double start_power, double end_power, double durati
   }
 
 }
-double getLastTime(){
-  return currentTime = millis() / 1000.0 - lastTime;
-}
+
 void MoveJerky_N_N_N(double jerkiness, double power, double duration){
   current_power = power;
 
@@ -714,4 +712,3 @@ void _loop() {
 void loop() {
   _loop();
 }
-

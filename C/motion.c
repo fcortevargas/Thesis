@@ -6,13 +6,18 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 
-MeDCMotor motor_9(9);
-MeDCMotor motor_10(10);
 double currentTime = 0;
 double lastTime = 0;
+MeDCMotor motor_9(9);
+MeDCMotor motor_10(10);
+MeBuzzer buzzer;
+MeRGBLed rgbled_7(7, 2);
 
 float current_power = 0;
 
+double getLastTime(){
+  return currentTime = millis() / 1000.0 - lastTime;
+}
 void move(int direction, int speed) {
   int leftSpeed = 0;
   int rightSpeed = 0;
@@ -52,9 +57,6 @@ void AccelerateForward_N_N_N(double start_power, double end_power, double durati
 
   }
 
-}
-double getLastTime(){
-  return currentTime = millis() / 1000.0 - lastTime;
 }
 void MoveJerky_N_N_N(double jerkiness, double power, double duration){
   current_power = power;
@@ -115,12 +117,38 @@ void _delay(float seconds) {
 }
 
 void setup() {
-  MoveForward_N_N(100, 1);
-  MoveRound_B_B_N_N_N(1.000000 == 1.000000, 1.000000 == 0.000000, 60, 100, 5);
-  MoveForward_N_N(100, 1);
-  MoveJerky_N_N_N(100, 100, 5);
+  rgbled_7.fillPixelsBak(0, 2, 1);
+  lastTime = millis() / 1000.0;
+  if(getLastTime() < 50){
+
+    move(1, 50 / 100.0 * 255);
+
+    buzzer.tone(700, 0.5 * 1000);
+
+    buzzer.tone(800, 0.5 * 1000);
+
+    buzzer.tone(900, 0.5 * 1000);
+
+    buzzer.tone(1000, 0.5 * 1000);
+
+  }
+  MoveRound_B_B_N_N_N(1.000000 == 1.000000, 1.000000 == 0.000000, 20, 60, 5);
+
+  buzzer.tone(1000, 0.5 * 1000);
+
+  buzzer.tone(900, 0.5 * 1000);
+
+  buzzer.tone(800, 0.5 * 1000);
+
+  buzzer.tone(700, 0.5 * 1000);
+
+  rgbled_7.setColor(0,255,0,0);
+  rgbled_7.show();
+
+  move(1, 50 / 100.0 * 255);
+  MoveJerky_N_N_N(30, 30, 5);
   StopMoving();
-  
+
 }
 
 void _loop() {

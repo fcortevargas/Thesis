@@ -199,7 +199,7 @@ void _delay(float seconds) {
 
 void setup() {
   rgbled_7.fillPixelsBak(0, 2, 1);
-  SmoothTurnOnLights_B_B_N_N_N(1.000000 == 1.000000, 1.000000 == 1.000000, 255, 0, 0);
+  SmoothTurnOnLights_B_B_N_N_N(1.000000 == 1.000000, 1.000000 == 1.000000, 255, 85, 0);
   _delay(1);
   SmoothChangeColors_B_B_N_N_N(1.000000 == 1.000000, 1.000000 == 1.000000, 0, 255, 255);
   _delay(1);
@@ -221,4 +221,3 @@ void _loop() {
 void loop() {
   _loop();
 }
-
