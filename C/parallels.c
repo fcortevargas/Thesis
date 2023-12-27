@@ -21,6 +21,7 @@ float baseTurnDuration;
 float turnDuration;
 float forwardDuration;
 float turnSpeed;
+int acceleration;
 int wanderCycle;
 
 // Blink control variables
@@ -83,11 +84,36 @@ void move(int direction, int speed)
   motor_10.run((10) == M1 ? -(rightSpeed) : (rightSpeed));
 }
 
-double generateGaussian(double standardDeviation) {
+// Helper method to generate a random standard gaussian number
+double GenerateGaussian(double standardDeviation) 
+{
     double u1 = rand() / (RAND_MAX + 1.0);
     double u2 = rand() / (RAND_MAX + 1.0);
     double z0 = sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
     return z0 * standardDeviation;
+}
+
+// Helper method to calculatae forward and turn durations for the wander base behavior
+void CalculateDurations(double roundness, double turnRate, double standardDeviation)
+{
+  // Calculate base turn duration based on input roundness and turn rate
+  baseTurnDuration = (0.2 * roundness + 0.6) / turnRate;
+
+  // Add random normal variation
+  turnDuration = baseTurnDuration + GenerateGaussian(standardDeviation);
+
+  // Cap the turn duration to be greater than zero
+  if (turnDuration <= 0) {
+    turnDuration = 0;
+  }
+
+  // Cap the turn duration based on input turn rate
+  if (turnDuration >= 1 / turnRate) {
+    turnDuration = 1 / turnRate;
+  }
+
+  // Calculate forward duration
+  forwardDuration = 1 / turnRate - turnDuration;
 }
 
 // Method to execute robot's base behaviors wander, blink and beep
@@ -103,30 +129,16 @@ void WanderBlinkBeep(double duration,
 
   // If wander input is valid, initialize wander variables
   if (doWander) {
-    // Calculate base turn duration based on input roundness and turn rate
-    baseTurnDuration = (0.2 * wanderRoundness + 0.6) / wanderTurnRate;
-
-    // Add random normal variation
-    turnDuration = baseTurnDuration + generateGaussian(wanderStandardDeviation);
-
-    // Cap the turn duration to be strictly positive
-    if (turnDuration <= 0) {
-      turnDuration = 0.00001;
-    }
-
-    // Cap the turn duration based on input roundness
-    if (turnDuration > 1.4 * wanderRoundness + 0.6) {
-      turnDuration = 1.4 * wanderRoundness + 0.6;
-    }
-
-    // Calculate forward duration
-    forwardDuration = 1 / wanderTurnRate - turnDuration;
+    // Calculate turn and forward durations based on given input
+    CalculateDurations(wanderRoundness, wanderTurnRate, wanderStandardDeviation);
 
     // Calculate turn speed based on input roundness and speed
     turnSpeed = wanderSpeed * wanderRoundness - wanderSpeed / 2;
 
     // Variable used to determine if robot should turn left or right
     wanderCycle = 0;
+
+    acceleration = 1; 
   }
 
   // Check if blink input is valid
@@ -233,9 +245,35 @@ void WanderBlinkBeep(double duration,
         }
 
         // Move forward for given duration
-        if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + forwardDuration) {
-          move(1, wanderSpeed / 100.0 * 255);
-        } else {
+
+        // Constant mode
+        if (wanderAcceleration.equals("Constant")){
+          if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + forwardDuration) {
+            move(1, wanderSpeed / 100.0 * 255);
+          } 
+        }
+
+        // Rising mode
+        if (wanderAcceleration.equals("Rising")){
+          if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + acceleration * forwardDuration / 100) {
+            move(1, acceleration * wanderSpeed / 100 / 100.0 * 255);
+          } else {
+            acceleration += 1;
+          }
+        }
+
+        // Falling mode
+        if (wanderAcceleration.equals("Falling")){
+          if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + acceleration * forwardDuration / 100) {
+            move(1, (100 - acceleration) * wanderSpeed / 100 / 100.0 * 255);
+          } else {
+            acceleration += 1;
+          }
+        }
+
+        // Turn for given duration
+        if (getLastTime() - wanderPhase > wanderCycle / wanderTurnRate + forwardDuration && 
+            getLastTime() - wanderPhase < (wanderCycle + 1) / wanderTurnRate) {
           if (fmod(wanderCycle, 2) == 0) {
             // Turn right?
             motor_9.run(-1 * wanderSpeed / 100.0 * 255);
@@ -247,9 +285,16 @@ void WanderBlinkBeep(double duration,
           }
         }
 
-        // After turn cycle is finished, increase by one
+        // After forward and turn cycle is finished
         if (getLastTime() - wanderPhase > (wanderCycle + 1) / wanderTurnRate) {
+          // Increase cycle count by one
           wanderCycle += 1;
+
+          // Reset to one
+          acceleration = 1;
+
+          // Change forward and turn durations
+          CalculateDurations(wanderRoundness, wanderTurnRate, wanderStandardDeviation);
         }
     }
 
@@ -486,14 +531,36 @@ void setup()
     // if ((0 ^ (analogRead(A7) > 10 ? 0 : 1))) {
 
     // Uncomment if using remote control
-    if (ir.keyPressed(9)) { // If left key pressed
+    if (ir.keyPressed(9)) { // If right key pressed
       timesButtonPressed += 1;
 
       if (timesButtonPressed == 1) {
         WanderBlinkBeep(// duration,
-                        5, 
+                        10, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderStandardDeviation, wanderPhase, stayInBounds
-                        100,            "Constant",         1,               1,              0.1,                     0,           false, 
+                        100,            "Constant",         1,               0.5,            1,                       0,           false, 
+                        // blinkTemperature, blinkMode,        blinkTempo, blinkPhase
+                        0,                   "",               0,          0, 
+                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepPhase
+                        0,            "",               0,                       0,         0);
+      }
+
+      if (timesButtonPressed == 2) {
+        WanderBlinkBeep(// duration,
+                        10, 
+                        // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderStandardDeviation, wanderPhase, stayInBounds
+                        100,            "Rising",           1,               0.5,            1,                       0,           false, 
+                        // blinkTemperature, blinkMode,        blinkTempo, blinkPhase
+                        0,                   "",               0,          0, 
+                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepPhase
+                        0,            "",               0,                       0,         0);
+      }
+
+      if (timesButtonPressed == 3) {
+        WanderBlinkBeep(// duration,
+                        10, 
+                        // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderStandardDeviation, wanderPhase, stayInBounds
+                        100,            "Falling",          1,               0.5,            1,                       0,           false, 
                         // blinkTemperature, blinkMode,        blinkTempo, blinkPhase
                         0,                   "",               0,          0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepPhase
