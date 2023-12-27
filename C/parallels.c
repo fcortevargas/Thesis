@@ -2,6 +2,8 @@
 #include <MeMCore.h>
 #include <SoftwareSerial.h>
 #include <Wire.h>
+#include <stdlib.h>
+#include <math.h>
 
 // Timer control variables
 double currentTime = 0;
@@ -12,8 +14,10 @@ MeDCMotor motor_9(9);
 MeDCMotor motor_10(10);
 MeRGBLed rgbled_7(7, 2);
 MeBuzzer buzzer;
+MeIR ir;
 
 // Wander control variables
+float baseTurnDuration;
 float turnDuration;
 float forwardDuration;
 float turnSpeed;
@@ -79,21 +83,36 @@ void move(int direction, int speed)
   motor_10.run((10) == M1 ? -(rightSpeed) : (rightSpeed));
 }
 
+double generateGaussian(double standardDeviation) {
+    double u1 = rand() / (RAND_MAX + 1.0);
+    double u2 = rand() / (RAND_MAX + 1.0);
+    double z0 = sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
+    return z0 * standardDeviation;
+}
+
 // Method to execute robot's base behaviors wander, blink and beep
 void WanderBlinkBeep(double duration, 
-                     double wanderSpeed, String wanderAcceleration, double wanderRoundness, double wanderTurnRate, double wanderPhase, boolean stayInBounds, 
+                     double wanderSpeed, String wanderAcceleration, double wanderRoundness, double wanderTurnRate, double wanderStandardDeviation, double wanderPhase, boolean stayInBounds, 
                      double blinkTemperature, String blinkMode, double blinkTempo, double blinkPhase,
                      double beepPitch, String beepIntonation, double beepSoundToSilenceRatio, double beepTempo, double beepPhase) 
 {
   // INPUT CHECKS AND VARIABLE INITIALIZATION
 
   // Check if wander input is valid
-  CheckValidWanderInput(wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderPhase);
+  CheckValidWanderInput(wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderStandardDeviation, wanderPhase);
 
   // If wander input is valid, initialize wander variables
   if (doWander) {
-    // Calculate turn duration based on input roundness and turn rate
-    turnDuration = (0.2 * wanderRoundness + 0.6) / wanderTurnRate;
+    // Calculate base turn duration based on input roundness and turn rate
+    baseTurnDuration = (0.2 * wanderRoundness + 0.6) / wanderTurnRate;
+
+    // Add random normal variation
+    turnDuration = baseTurnDuration + generateGaussian(wanderStandardDeviation);
+
+    // Cap the turn duration to be strictly positive
+    if (turnDuration <= 0) {
+      turnDuration = 0.00001;
+    }
 
     // Cap the turn duration based on input roundness
     if (turnDuration > 1.4 * wanderRoundness + 0.6) {
@@ -397,15 +416,16 @@ void WanderBlinkBeep(double duration,
   motor_10.run(0);
 }
 
-void CheckValidWanderInput(double speed, String acceleration, double roundness, double turnRate, double phase)
+void CheckValidWanderInput(double speed, String acceleration, double roundness, double turnRate, double standardDeviation, double phase)
 {
     boolean isValidSpeed = speed >= 0 && speed <= 100;
     boolean isTurnRatePositive = turnRate > 0;
     boolean isValidAcceleration = acceleration.equals("Constant") || acceleration.equals("Rising") || acceleration.equals("Falling");
     boolean isValidRoundness = roundness >= 0 && roundness <= 1;
+    boolean isValidStandardDeviation = standardDeviation >= 0;
     boolean isValidPhase = phase >= 0;
 
-    if (isValidSpeed && isTurnRatePositive && isValidAcceleration && isValidRoundness && isValidPhase) {
+    if (isValidSpeed && isTurnRatePositive && isValidAcceleration && isValidRoundness && isValidStandardDeviation && isValidPhase) {
       doWander = true;
     } else {
       doWander = false;
@@ -441,28 +461,43 @@ void CheckValidBeepInput(double pitch, String intonation, double soundToSilenceR
   }
 }
 
-void _delay(float seconds) {
+void _delay(float seconds) 
+{
   long endTime = millis() + seconds * 1000;
   while (millis() < endTime) _loop();
 }
 
-void setup() {
-  pinMode(A7, INPUT);
+void setup() 
+{
+  // // Uncomment if using on-board button
+  // pinMode(A7, INPUT);
+
+  // Uncomment if using remote control
+  ir.begin();
+
   rgbled_7.fillPixelsBak(0, 2, 1);
   timesButtonPressed = 0;
+
+  // Initialize random seed
+  randomSeed(0);
+
   while (true) {
-    if ((0 ^ (analogRead(A7) > 10 ? 0 : 1))) {
+    // // Uncomment if using on-board button
+    // if ((0 ^ (analogRead(A7) > 10 ? 0 : 1))) {
+
+    // Uncomment if using remote control
+    if (ir.keyPressed(9)) { // If left key pressed
       timesButtonPressed += 1;
 
       if (timesButtonPressed == 1) {
         WanderBlinkBeep(// duration,
                         5, 
-                        // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderPhase, stayInBounds
-                        0,              "",                 0,               0,              0,           false, 
+                        // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderStandardDeviation, wanderPhase, stayInBounds
+                        100,            "Constant",         1,               1,              0.1,                     0,           false, 
                         // blinkTemperature, blinkMode,        blinkTempo, blinkPhase
                         0,                   "",               0,          0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepPhase
-                        440,          "Falling-Rising", 0.5,                     0.5,         0);
+                        0,            "",               0,                       0,         0);
         timesButtonPressed = 0;
       }
     }
@@ -472,6 +507,8 @@ void setup() {
 
 void _loop() 
 {
+  // Uncomment if using remote control
+  ir.loop();
 }
 
 void loop() 
