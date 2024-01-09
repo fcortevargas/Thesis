@@ -20,6 +20,7 @@ MeIR ir;
 float baseTurnDuration;
 float turnDuration;
 float forwardDuration;
+float lineTurnDuration;
 float turnSpeed;
 int acceleration;
 int wanderCycle;
@@ -93,8 +94,8 @@ double GenerateGaussian(double standardDeviation)
     return z0 * standardDeviation;
 }
 
-// Helper method to calculatae forward and turn durations for the wander base behavior
-void CalculateDurations(double roundness, double turnRate, double standardDeviation)
+// Helper method to calculate forward, turn, and line turn durations for the wander base behavior
+void CalculateWanderDurations(double speed, double roundness, double turnRate, double standardDeviation)
 {
   // Calculate base turn duration based on input roundness and turn rate
   baseTurnDuration = (0.2 * roundness + 0.6) / turnRate;
@@ -114,6 +115,13 @@ void CalculateDurations(double roundness, double turnRate, double standardDeviat
 
   // Calculate forward duration
   forwardDuration = 1 / turnRate - turnDuration;
+
+  // Calculate line turn duration
+  if (speed <= 100 && speed >= 50){
+    lineTurnDuration = 0.5;
+  } else {
+    lineTurnDuration = 0.0008 * pow(speed, 2) -0.11 * speed + 4;
+  }
 }
 
 // Method to execute robot's base behaviors wander, blink and beep
@@ -129,8 +137,8 @@ void WanderBlinkBeep(double duration,
 
   // If wander input is valid, initialize wander variables
   if (doWander) {
-    // Calculate turn and forward durations based on given input
-    CalculateDurations(wanderRoundness, wanderTurnRate, wanderStandardDeviation);
+    // Calculate turn, line turn and forward durations based on given input
+    CalculateWanderDurations(wanderSpeed, wanderRoundness, wanderTurnRate, wanderStandardDeviation);
 
     // Calculate turn speed based on input roundness and speed
     turnSpeed = wanderSpeed * wanderRoundness - wanderSpeed / 2;
@@ -228,17 +236,19 @@ void WanderBlinkBeep(double duration,
             // Get sensor reading
             int sensorReading = linefollower_2.readSensors();
 
+            // Turn left if right sensor detects a black line
             if ((0 ? (1 == 0 ? sensorReading == 0 : (sensorReading & 1) == 1)
                    : (1 == 0 ? sensorReading == 3 : (sensorReading & 1) == 0))) {
-                move(3, 100.0 / 100.0 * 255);
-                _delay(0.5);
+                move(3, wanderSpeed / 100.0 * 255);
+                _delay(lineTurnDuration);
                 move(3, 0);
             }
 
+            // Turn right if left sensor detects a black line
             if ((0 ? (2 == 0 ? sensorReading == 0 : (sensorReading & 2) == 2)
                    : (2 == 0 ? sensorReading == 3 : (sensorReading & 2) == 0))) {
-                move(4, 100.0 / 100.0 * 255);
-                _delay(0.5);
+                move(4, wanderSpeed / 100.0 * 255);
+                _delay(lineTurnDuration);
                 move(4, 0);
             }
           }
@@ -294,7 +304,7 @@ void WanderBlinkBeep(double duration,
           acceleration = 1;
 
           // Change forward and turn durations
-          CalculateDurations(wanderRoundness, wanderTurnRate, wanderStandardDeviation);
+          CalculateWanderDurations(wanderSpeed, wanderRoundness, wanderTurnRate, wanderStandardDeviation);
         }
     }
 
@@ -463,7 +473,7 @@ void WanderBlinkBeep(double duration,
 
 void CheckValidWanderInput(double speed, String acceleration, double roundness, double turnRate, double standardDeviation, double phase)
 {
-    boolean isValidSpeed = speed >= 0 && speed <= 100;
+    boolean isValidSpeed = speed >= 25 && speed <= 100;
     boolean isTurnRatePositive = turnRate > 0;
     boolean isValidAcceleration = acceleration.equals("Constant") || acceleration.equals("Rising") || acceleration.equals("Falling");
     boolean isValidRoundness = roundness >= 0 && roundness <= 1;
@@ -534,37 +544,18 @@ void setup()
     if (ir.keyPressed(9)) { // If right key pressed
       timesButtonPressed += 1;
 
-      if (timesButtonPressed == 1) {
+      if (timesButtonPressed >= 1) {
         WanderBlinkBeep(// duration,
                         10, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderStandardDeviation, wanderPhase, stayInBounds
-                        100,            "Constant",         1,               0.5,            1,                       0,           false, 
+                        20 + timesButtonPressed * 5,             "Constant",         1,               0.5,            1,                       0,           true, 
                         // blinkTemperature, blinkMode,        blinkTempo, blinkPhase
                         0,                   "",               0,          0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepPhase
                         0,            "",               0,                       0,         0);
       }
 
-      if (timesButtonPressed == 2) {
-        WanderBlinkBeep(// duration,
-                        10, 
-                        // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderStandardDeviation, wanderPhase, stayInBounds
-                        100,            "Rising",           1,               0.5,            1,                       0,           false, 
-                        // blinkTemperature, blinkMode,        blinkTempo, blinkPhase
-                        0,                   "",               0,          0, 
-                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepPhase
-                        0,            "",               0,                       0,         0);
-      }
-
-      if (timesButtonPressed == 3) {
-        WanderBlinkBeep(// duration,
-                        10, 
-                        // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderStandardDeviation, wanderPhase, stayInBounds
-                        100,            "Falling",          1,               0.5,            1,                       0,           false, 
-                        // blinkTemperature, blinkMode,        blinkTempo, blinkPhase
-                        0,                   "",               0,          0, 
-                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepPhase
-                        0,            "",               0,                       0,         0);
+      if (timesButtonPressed == 16){
         timesButtonPressed = 0;
       }
     }
