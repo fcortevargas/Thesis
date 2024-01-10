@@ -9,6 +9,7 @@
 double currentTime = 0;
 double lastTime = 0;
 
+// Arduino components
 MeLineFollower linefollower_2(2);
 MeDCMotor motor_9(9);
 MeDCMotor motor_10(10);
@@ -17,7 +18,6 @@ MeBuzzer buzzer;
 MeIR ir;
 
 // Wander control variables
-float baseTurnDuration;
 float turnDuration;
 float forwardDuration;
 float lineTurnDuration;
@@ -26,10 +26,11 @@ int acceleration;
 int wanderCycle;
 
 // Blink control variables
+float lightsOnDuration;
+float lightsOffDuration;
 float targetRedIntensity;
 float targetGreenIntensity;
 float targetBlueIntensity;
-float onDuration;
 int brightness;
 int blinkCycle;
 
@@ -79,10 +80,10 @@ void move(int direction, int speed)
   }
 
   // Run left motor at given speed
-  motor_9.run((9) == M1 ? -(leftSpeed) : (leftSpeed));
+  motor_9.run(9 == M1 ? -leftSpeed : leftSpeed);
 
   // Run right motor at given speed
-  motor_10.run((10) == M1 ? -(rightSpeed) : (rightSpeed));
+  motor_10.run(10 == M1 ? -rightSpeed : rightSpeed);
 }
 
 // Helper method to generate a random standard gaussian number
@@ -95,53 +96,122 @@ double GenerateGaussian(double standardDeviation)
 }
 
 // Helper method to calculate forward, turn, and line turn durations for the wander base behavior
-void CalculateWanderDurations(double speed, double roundness, double turnRate, double standardDeviation)
+void SetWanderDurations(double speed, double roundness, double turnRate, double cycleStandardDeviation)
 {
-  // Calculate base turn duration based on input roundness and turn rate
-  baseTurnDuration = (0.2 * roundness + 0.6) / turnRate;
+  // Set base turn duration based on input roundness and turn rate
+  turnDuration = (0.2 * roundness + 0.6) / turnRate;
 
-  // Add random normal variation
-  turnDuration = baseTurnDuration + GenerateGaussian(standardDeviation);
+  // Add random normal variation to the base turn duration
+  turnDuration += GenerateGaussian(cycleStandardDeviation);
 
-  // Cap the turn duration to be greater than zero
-  if (turnDuration <= 0) {
-    turnDuration = 0;
-  }
+  // Cap the turn duration to be positive
+  turnDuration < 0 ? 0 : turnDuration;
 
   // Cap the turn duration based on input turn rate
-  if (turnDuration >= 1 / turnRate) {
-    turnDuration = 1 / turnRate;
-  }
+  turnDuration > 1 / turnRate ? 1 / turnRate : turnDuration;
 
-  // Calculate forward duration
+  // Set forward duration
   forwardDuration = 1 / turnRate - turnDuration;
 
-  // Calculate line turn duration
+  // Set line turn duration
   if (speed <= 100 && speed >= 50){
     lineTurnDuration = 0.5;
   } else {
-    lineTurnDuration = 0.0008 * pow(speed, 2) -0.11 * speed + 4;
+    lineTurnDuration = 0.0008 * pow(speed, 2) - 0.11 * speed + 4;
+  }
+}
+
+void SetBlinkDurations(String mode, double lightsOffToOnRatio, double tempo, double cycleStandardDeviation)
+{
+  // Set lights off duration based on input tempo
+  lightsOffDuration = lightsOffToOnRatio / tempo;
+
+  // Add random normal variation to the base turn duration
+  lightsOffDuration += GenerateGaussian(cycleStandardDeviation);
+
+  // Cap the turn duration to be positive
+  lightsOffDuration < 0 ? 0 : lightsOffDuration;
+
+  // Cap the turn duration based on input turn rate
+  lightsOffDuration > 1 / tempo ? 1 / tempo : lightsOffDuration;
+
+  // Set forward duration
+  lightsOnDuration = 1 / tempo - lightsOffDuration;
+}
+
+void SetBeepDurations(String intonation, double silenceToSoundRatio, double tempo)
+{
+  // Initialize sound and silence duration
+  if (intonation == "Constant") {
+    soundDuration = silenceToSoundRatio / tempo;
+    silenceDuration = (1 - silenceToSoundRatio) / tempo;
+  }
+
+  if (intonation == "Rising" || intonation == "Falling") {
+    soundDuration = silenceToSoundRatio / tempo / 12;
+    silenceDuration = (1 - silenceToSoundRatio) / tempo / 12;
+  } else {
+    soundDuration = silenceToSoundRatio / tempo / 24;
+    silenceDuration = (1 - silenceToSoundRatio) / tempo / 24;
+  }
+}
+
+// Helper method to set the target red, blue and green intensity for the blink base behavior
+void SetTargetIntensities(double temperature, double temperatureStandardDeviation)
+{
+  // Add random normal variation to the blink temperature to get the target temperature
+  double targetTemperature = temperature + GenerateGaussian(temperatureStandardDeviation);
+
+  // Cap temperature to zero if it's lower than zero
+  if (targetTemperature < 0) {
+    targetTemperature = 0;
+  }
+
+  // Cap temperature to one if it's higher than one
+  if (targetTemperature > 1) {
+    targetTemperature = 1;
+  }
+
+  // If target temperature is neutral, choose a greenish yellow.
+  if (targetTemperature == 0.5) {
+    targetRedIntensity = 200;
+    targetGreenIntensity = 255;
+    targetBlueIntensity = 0;
+  }
+
+  // If target temperature is higher than 0.5, choose warm colors
+  if (targetTemperature > 0.5) {
+    targetRedIntensity = round(110 * targetTemperature + 145);
+    targetGreenIntensity = round(-510 * targetTemperature + 510);
+    targetBlueIntensity = 0;
+  }
+
+  // If target temperature is lower than 0.5, choose cool colors
+  if (targetTemperature < 0.5) {
+    targetRedIntensity = round(100 * targetTemperature);
+    targetGreenIntensity = round(510 * targetTemperature);
+    targetBlueIntensity = round(-510 * targetTemperature + 255);
   }
 }
 
 // Method to execute robot's base behaviors wander, blink and beep
 void WanderBlinkBeep(double duration, 
-                     double wanderSpeed, String wanderAcceleration, double wanderRoundness, double wanderTurnRate, double wanderStandardDeviation, double wanderPhase, boolean stayInBounds, 
-                     double blinkTemperature, String blinkMode, double blinkTempo, double blinkPhase,
-                     double beepPitch, String beepIntonation, double beepSoundToSilenceRatio, double beepTempo, double beepPhase) 
+                     double wanderSpeed, String wanderAcceleration, double wanderRoundness, double wanderTurnRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase, boolean stayInBounds, 
+                     double blinkTemperature, String blinkMode, double blinkLightsOffToOnRatio, double blinkTempo, double blinkCycleStandardDeviation, double blinkTemperatureStandardDeviation, double blinkPhase,
+                     double beepPitch, String beepIntonation, double beepSilenceToSoundRatio, double beepTempo, double beepCycleStandardDeviation, double beepPitchStandardDeviation, double beepPhase) 
 {
   // INPUT CHECKS AND VARIABLE INITIALIZATION
 
   // Check if wander input is valid
-  CheckValidWanderInput(wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderStandardDeviation, wanderPhase);
+  CheckValidWanderInput(wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase);
 
   // If wander input is valid, initialize wander variables
   if (doWander) {
-    // Calculate turn, line turn and forward durations based on given input
-    CalculateWanderDurations(wanderSpeed, wanderRoundness, wanderTurnRate, wanderStandardDeviation);
-
-    // Calculate turn speed based on input roundness and speed
+    // Set turn speed based on input roundness and speed
     turnSpeed = wanderSpeed * wanderRoundness - wanderSpeed / 2;
+    
+    // Set turn, line turn and forward durations based on given input
+    SetWanderDurations(wanderSpeed, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation);
 
     // Variable used to determine if robot should turn left or right
     wanderCycle = 0;
@@ -150,38 +220,15 @@ void WanderBlinkBeep(double duration,
   }
 
   // Check if blink input is valid
-  CheckValidBlinkInput(blinkTemperature, blinkMode, blinkTempo, blinkPhase);
+  CheckValidBlinkInput(blinkTemperature, blinkMode, blinkLightsOffToOnRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase);
 
   // If blink input is valid, initialize blink variables
   if (doBlink) {
-    // If temperature is neutral, choose a greenish yellow.
-    if (blinkTemperature == 0.5) {
-      targetRedIntensity = 200;
-      targetGreenIntensity = 255;
-      targetBlueIntensity = 0;
-    }
+    // Set lights on and off durations based on given input
+    SetTargetIntensities(blinkTemperature, blinkTemperatureStandardDeviation);
 
-    // If temperature is higher than 0.5, choose warm colors
-    if (blinkTemperature > 0.5) {
-      targetRedIntensity = round(110 * blinkTemperature + 145);
-      targetGreenIntensity = round(-510 * blinkTemperature + 510);
-      targetBlueIntensity = 0;
-    }
-
-    // If temperature is lower than 0.5, choose cool colors
-    if (blinkTemperature < 0.5) {
-      targetRedIntensity = round(100 * blinkTemperature);
-      targetGreenIntensity = round(510 * blinkTemperature);
-      targetBlueIntensity = round(-510 * blinkTemperature + 255);
-    }
-
-    // Initialize duration that lights are turned on
-    if (blinkMode == "Constant") {
-      onDuration = 1 / (2 * blinkTempo);
-
-    } else {
-      onDuration = 1 / blinkTempo;
-    }
+    // Set lights on and off durations based on given input
+    SetBlinkDurations(blinkMode, blinkLightsOffToOnRatio, blinkTempo, blinkCycleStandardDeviation);
 
     // Variable used to control the blink cycles
     blinkCycle = 0;
@@ -191,25 +238,14 @@ void WanderBlinkBeep(double duration,
   }
 
   // Check if beep input is valid
-  CheckValidBeepInput(beepPitch, beepIntonation, beepSoundToSilenceRatio, beepTempo, beepPhase);
+  CheckValidBeepInput(beepPitch, beepIntonation, beepSilenceToSoundRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepPhase);
 
   if (doBeep) {
     // Initialize current pitch to target pitch
     currentPitch = beepPitch;
 
-    // Initialize sound and silence duration
-    if (beepIntonation == "Constant") {
-      soundDuration = beepSoundToSilenceRatio / beepTempo;
-      silenceDuration = (1 - beepSoundToSilenceRatio) / beepTempo;
-    }
-
-    if (beepIntonation == "Rising" || beepIntonation == "Falling") {
-      soundDuration = beepSoundToSilenceRatio / beepTempo / 12;
-      silenceDuration = (1 - beepSoundToSilenceRatio) / beepTempo / 12;
-    } else {
-      soundDuration = beepSoundToSilenceRatio / beepTempo / 24;
-      silenceDuration = (1 - beepSoundToSilenceRatio) / beepTempo / 24;
-    }
+    // Set sound and silence durations based on given input
+    SetBeepDurations(beepIntonation, beepSilenceToSoundRatio, beepTempo);
 
     // Variable used to control the beep cycles
     beepCycle = 0;
@@ -285,12 +321,12 @@ void WanderBlinkBeep(double duration,
         if (getLastTime() - wanderPhase > wanderCycle / wanderTurnRate + forwardDuration && 
             getLastTime() - wanderPhase < (wanderCycle + 1) / wanderTurnRate) {
           if (fmod(wanderCycle, 2) == 0) {
-            // Turn right?
-            motor_9.run(-1 * wanderSpeed / 100.0 * 255);
+            // Turn right
+            motor_9.run(-wanderSpeed / 100.0 * 255);
             motor_10.run(turnSpeed / 100.0 * 255);
           } else {
-            // Turn left?
-            motor_9.run(-1 * turnSpeed / 100.0 * 255);
+            // Turn left
+            motor_9.run(-turnSpeed / 100.0 * 255);
             motor_10.run(wanderSpeed / 100.0 * 255);
           }
         }
@@ -304,7 +340,7 @@ void WanderBlinkBeep(double duration,
           acceleration = 1;
 
           // Change forward and turn durations
-          CalculateWanderDurations(wanderSpeed, wanderRoundness, wanderTurnRate, wanderStandardDeviation);
+          SetWanderDurations(wanderSpeed, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation);
         }
     }
 
@@ -312,45 +348,47 @@ void WanderBlinkBeep(double duration,
     if (doBlink) {
       // Start executing after the given phase
       if (getLastTime() - blinkPhase >= 0) {
+        // Turn lights on for given duration
+
         // Constant mode
         if (blinkMode.equals("Constant")) {
-          if (getLastTime() - blinkPhase < blinkCycle / blinkTempo + onDuration) {
+          if (getLastTime() - blinkPhase < blinkCycle / blinkTempo + lightsOnDuration) {
             rgbled_7.setColor(0, targetRedIntensity, targetGreenIntensity, targetBlueIntensity);
-            rgbled_7.show();
-          } else {
-            rgbled_7.setColor(0, 0, 0, 0);
             rgbled_7.show();
           }
         }
 
         // Rising mode
         if (blinkMode.equals("Rising")) {
-          if (getLastTime() - blinkPhase < blinkCycle / blinkTempo + brightness * onDuration / 100) {
+          if (getLastTime() - blinkPhase < blinkCycle / blinkTempo + brightness * lightsOnDuration / 100) {
             rgbled_7.setColor(0, round(brightness * targetRedIntensity / 100),
                                  round(brightness * targetGreenIntensity / 100),
                                  round(brightness * targetBlueIntensity / 100));
-
             rgbled_7.show();
           } else {
-            brightness += 1;
+            if (brightness < 100){
+              brightness += 1;
+            }
           }
         }
 
         // Falling mode
         if (blinkMode.equals("Falling")) {
-          if (getLastTime() - blinkPhase < blinkCycle / blinkTempo + brightness * onDuration / 100) {
+          if (getLastTime() - blinkPhase < blinkCycle / blinkTempo + brightness * lightsOnDuration / 100) {
             rgbled_7.setColor(0, round((100 - brightness) * targetRedIntensity / 100),
                                  round((100 - brightness) * targetGreenIntensity / 100),
                                  round((100 - brightness) * targetBlueIntensity / 100));
             rgbled_7.show();
           } else {
-            brightness += 1;
+            if (brightness < 100){
+              brightness += 1;
+            }
           }
         }
 
         // Rising-Falling mode
         if (blinkMode.equals("Rising-Falling")) {
-          if (getLastTime() - blinkPhase < blinkCycle / blinkTempo + brightness * onDuration / 200) {
+          if (getLastTime() - blinkPhase < blinkCycle / blinkTempo + brightness * lightsOnDuration / 200) {
             if (brightness < 100) {
               rgbled_7.setColor(0, round(brightness * targetRedIntensity / 100),
                                    round(brightness * targetGreenIntensity / 100),
@@ -363,13 +401,15 @@ void WanderBlinkBeep(double duration,
               rgbled_7.show();
             }
           } else {
-            brightness += 1;
+            if (brightness < 200){
+              brightness += 1;
+            }
           }
         }
 
         // Falling-Rising mode
         if (blinkMode.equals("Falling-Rising")) {
-          if (getLastTime() - blinkPhase < blinkCycle / blinkTempo + brightness * onDuration / 200) {
+          if (getLastTime() - blinkPhase < blinkCycle / blinkTempo + brightness * lightsOnDuration / 200) {
             if (brightness < 100) {
               rgbled_7.setColor(0, round((100 - brightness) * targetRedIntensity / 100),
                                    round((100 - brightness) * targetGreenIntensity / 100),
@@ -382,17 +422,32 @@ void WanderBlinkBeep(double duration,
               rgbled_7.show();
             }
           } else {
-            brightness += 1;
+            if (brightness < 200){
+              brightness += 1;
+            }
           }
         }
 
+        // Turn lights off for given duration
+        if (getLastTime() - blinkPhase > blinkCycle / blinkTempo + lightsOnDuration && 
+            getLastTime() - blinkPhase < (blinkCycle + 1) / blinkTempo) {
+          rgbled_7.setColor(0, 0, 0, 0);
+          rgbled_7.show();
+        }
+
         // If blink cycle has finished
-        if ((getLastTime() - blinkPhase) > ((blinkCycle + 1)) / blinkTempo) {
+        if (getLastTime() - blinkPhase > (blinkCycle + 1) / blinkTempo) {
           // Increase count of cycles by one
           blinkCycle += 1;
 
           // Reset to one
           brightness = 1;
+
+          // Change target red, green and blue light intensities
+          SetTargetIntensities(blinkTemperature, blinkTemperatureStandardDeviation);
+
+          // Change lights on and off durations
+          SetBlinkDurations(blinkMode, blinkLightsOffToOnRatio, blinkTempo, blinkCycleStandardDeviation);
         }
       }
     }
@@ -471,13 +526,13 @@ void WanderBlinkBeep(double duration,
   motor_10.run(0);
 }
 
-void CheckValidWanderInput(double speed, String acceleration, double roundness, double turnRate, double standardDeviation, double phase)
+void CheckValidWanderInput(double speed, String acceleration, double roundness, double turnRate, double cycleStandardDeviation, double speedStandardDeviation, double phase)
 {
     boolean isValidSpeed = speed >= 25 && speed <= 100;
     boolean isTurnRatePositive = turnRate > 0;
     boolean isValidAcceleration = acceleration.equals("Constant") || acceleration.equals("Rising") || acceleration.equals("Falling");
     boolean isValidRoundness = roundness >= 0 && roundness <= 1;
-    boolean isValidStandardDeviation = standardDeviation >= 0;
+    boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && speedStandardDeviation >= 0;
     boolean isValidPhase = phase >= 0;
 
     if (isValidSpeed && isTurnRatePositive && isValidAcceleration && isValidRoundness && isValidStandardDeviation && isValidPhase) {
@@ -487,29 +542,32 @@ void CheckValidWanderInput(double speed, String acceleration, double roundness, 
     }
 }
 
-void CheckValidBlinkInput(double temperature, String mode, double tempo, double phase) 
+void CheckValidBlinkInput(double temperature, String mode, double lightsOffToOnRatio, double tempo, double cycleStandardDeviation, double temperatureStandardDeviation, double phase) 
 {
   boolean isValidTemperature = temperature >= 0 && temperature <= 1;
   boolean isValidMode = mode.equals("Constant") || mode.equals("Rising") || mode.equals("Falling") || mode.equals("Rising-Falling") || mode.equals("Falling-Rising");
+  boolean isValidLightsOffToOnRatio = lightsOffToOnRatio <= 1 && lightsOffToOnRatio >= 0;
   boolean isTempoPositive = tempo > 0;
+  boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && temperatureStandardDeviation >= 0;
   boolean isValidPhase = phase >= 0;
 
-  if (isValidTemperature && isValidMode && isTempoPositive && isValidPhase) {
+  if (isValidTemperature && isValidMode && isValidLightsOffToOnRatio && isTempoPositive && isValidStandardDeviation && isValidPhase) {
     doBlink = true;
   } else {
     doBlink = false;
   }
 }
 
-void CheckValidBeepInput(double pitch, String intonation, double soundToSilenceRatio, double tempo, double phase) 
+void CheckValidBeepInput(double pitch, String intonation, double silenceToSoundRatio, double tempo, double cycleStandardDeviation, double pitchStandardDeviation, double phase) 
 {
   boolean isValidPitch = pitch > 0 && pitch < 5000;
   boolean isValidIntonation = intonation.equals("Constant") || intonation.equals("Rising") || intonation.equals("Falling") || intonation.equals("Rising-Falling") || intonation.equals("Falling-Rising");
-  boolean isValidSoundToSilenceRatio = soundToSilenceRatio <= 1 && soundToSilenceRatio >= 0;
+  boolean isValidSilenceToSoundRatio = silenceToSoundRatio <= 1 && silenceToSoundRatio >= 0;
   boolean isTempoPositive = tempo > 0;
+  boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && pitchStandardDeviation >= 0;
   boolean isValidPhase = phase >= 0;
 
-  if (isValidPitch && isValidIntonation && isTempoPositive && isValidSoundToSilenceRatio && isValidPhase) {
+  if (isValidPitch && isValidIntonation && isValidSilenceToSoundRatio && isTempoPositive && isValidStandardDeviation && isValidPhase) {
     doBeep = true;
   } else {
     doBeep = false;
@@ -524,10 +582,7 @@ void _delay(float seconds)
 
 void setup() 
 {
-  // // Uncomment if using on-board button
-  // pinMode(A7, INPUT);
-
-  // Uncomment if using remote control
+  // Initialize remote control signaling
   ir.begin();
 
   rgbled_7.fillPixelsBak(0, 2, 1);
@@ -537,25 +592,20 @@ void setup()
   randomSeed(0);
 
   while (true) {
-    // // Uncomment if using on-board button
-    // if ((0 ^ (analogRead(A7) > 10 ? 0 : 1))) {
-
-    // Uncomment if using remote control
-    if (ir.keyPressed(9)) { // If right key pressed
+    // If right key is pressed on the remote control
+    if (ir.keyPressed(9)) {
       timesButtonPressed += 1;
-
-      if (timesButtonPressed >= 1) {
+      
+      if (timesButtonPressed == 1) {
         WanderBlinkBeep(// duration,
-                        10, 
-                        // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderStandardDeviation, wanderPhase, stayInBounds
-                        20 + timesButtonPressed * 5,             "Constant",         1,               0.5,            1,                       0,           true, 
-                        // blinkTemperature, blinkMode,        blinkTempo, blinkPhase
-                        0,                   "",               0,          0, 
-                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepPhase
-                        0,            "",               0,                       0,         0);
-      }
-
-      if (timesButtonPressed == 16){
+                        20, 
+                        // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
+                        100,            "Constant",         0,               0.5,            0.5,                          0,                            0,           true, 
+                        // blinkTemperature, blinkMode,        blinkLightsOffToOnRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
+                        0.5,                 "Constant",       0.1,                     5,          0.2,                         0.4,                               0, 
+                        // beepPitch, beepIntonation,   beepSilenceToSoundRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepPhase
+                        0,            "",               0,                       0,         0,                          0,                          0);
+ 
         timesButtonPressed = 0;
       }
     }
@@ -565,7 +615,7 @@ void setup()
 
 void _loop() 
 {
-  // Uncomment if using remote control
+  // Used for the remote control
   ir.loop();
 }
 
