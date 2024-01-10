@@ -115,7 +115,7 @@ void SetWanderDurations(double speed, double roundness, double turnRate, double 
   forwardDuration = 1 / turnRate - turnDuration;
 
   // Set line turn duration
-  if (speed <= 100 && speed >= 50){
+  if (speed <= 100 && speed >= 50) {
     lineTurnDuration = 0.5;
   } else {
     lineTurnDuration = 0.0008 * pow(speed, 2) - 0.11 * speed + 4;
@@ -123,30 +123,41 @@ void SetWanderDurations(double speed, double roundness, double turnRate, double 
 }
 
 // Helper method to set the lights on and off durations for the blink base behavior
-void SetBlinkDurations(String mode, double lightsOnToOffRatio, double tempo, double cycleStandardDeviation)
+void SetBlinkDurations(double lightsOnToOffRatio, double tempo, double cycleStandardDeviation)
 {
   // Set lights off duration based on input tempo
   lightsOffDuration = (1 - lightsOnToOffRatio) / tempo;
 
-  // Add random normal variation to the base turn duration
+  // Add random normal variation to the base lights off duration
   lightsOffDuration += GenerateGaussian(cycleStandardDeviation);
 
-  // Cap the turn duration to be positive
+  // Cap the lights off duration to be positive
   lightsOffDuration < 0 ? 0 : lightsOffDuration;
 
-  // Cap the turn duration based on input turn rate
+  // Cap the lights off duration based on input tempo
   lightsOffDuration > 1 / tempo ? 1 / tempo : lightsOffDuration;
 
-  // Set forward duration
+  // Set lights on duration
   lightsOnDuration = 1 / tempo - lightsOffDuration;
 }
 
 // Helper method to set the sound and silence durations for the blink base behavior
-void SetBeepDurations(String intonation, double soundToSilenceRatio, double tempo)
+void SetBeepDurations(double soundToSilenceRatio, double tempo, double cycleStandardDeviation)
 {
-  // Initialize sound and silence duration
-  soundDuration = soundToSilenceRatio / tempo;
+  // Set silence duration based on input tempo
   silenceDuration = (1 - soundToSilenceRatio) / tempo;
+
+  // Add random normal variation to the base lights off duration
+  silenceDuration += GenerateGaussian(cycleStandardDeviation);
+
+  // Cap the silence duration to be positive
+  silenceDuration < 0 ? 0 : silenceDuration;
+
+  // Cap the silence duration based on input tempo
+  silenceDuration > 1 / tempo ? 1 / tempo : silenceDuration;
+
+  // Set sound duration
+  soundDuration = 1 / tempo - silenceDuration;
 }
 
 // Helper method to set the target forward and turn speed for the wander base behavior
@@ -241,7 +252,7 @@ void WanderBlinkBeep(double duration,
     SetTargetIntensities(blinkTemperature, blinkTemperatureStandardDeviation);
 
     // Set lights on and off durations based on given input
-    SetBlinkDurations(blinkMode, blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation);
+    SetBlinkDurations(blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation);
 
     // Variable used to control the blink cycles
     blinkCycle = 0;
@@ -258,7 +269,7 @@ void WanderBlinkBeep(double duration,
     currentPitch = beepPitch;
 
     // Set sound and silence durations based on given input
-    SetBeepDurations(beepIntonation, beepSoundToSilenceRatio, beepTempo);
+    SetBeepDurations(beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation);
 
     // Variable used to control the beep cycles
     beepCycle = 0;
@@ -306,14 +317,14 @@ void WanderBlinkBeep(double duration,
         // Move forward for given duration
 
         // Constant mode
-        if (wanderAcceleration.equals("Constant")){
+        if (wanderAcceleration.equals("Constant")) {
           if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + forwardDuration) {
             move(1, targetForwardSpeed / 100.0 * 255);
           } 
         }
 
         // Rising mode
-        if (wanderAcceleration.equals("Rising")){
+        if (wanderAcceleration.equals("Rising")) {
           if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + acceleration * forwardDuration / 100) {
             move(1, acceleration * targetForwardSpeed / 100 / 100.0 * 255);
           } else {
@@ -324,7 +335,7 @@ void WanderBlinkBeep(double duration,
         }
 
         // Falling mode
-        if (wanderAcceleration.equals("Falling")){
+        if (wanderAcceleration.equals("Falling")) {
           if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + acceleration * forwardDuration / 100) {
             move(1, (100 - acceleration) * targetForwardSpeed / 100 / 100.0 * 255);
           } else {
@@ -467,7 +478,7 @@ void WanderBlinkBeep(double duration,
           SetTargetIntensities(blinkTemperature, blinkTemperatureStandardDeviation);
 
           // Change lights on and off durations
-          SetBlinkDurations(blinkMode, blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation);
+          SetBlinkDurations(blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation);
         }
       }
     }
@@ -546,8 +557,14 @@ void WanderBlinkBeep(double duration,
       }
 
       if (getLastTime() - beepPhase > (beepCycle + 1) / beepTempo) {
+        // Increase count of cycles by one
         beepCycle += 1;
+
+        // Reset to one
         semitone = 1;
+
+        // Change sound and silence durations
+        SetBeepDurations(beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation);
       }
     }
   }
