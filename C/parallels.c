@@ -595,7 +595,8 @@ void setup()
     // If right key is pressed on the remote control
     if (ir.keyPressed(9)) {
       timesButtonPressed += 1;
-      
+
+      // Happy
       if (timesButtonPressed == 1) {
         WanderBlinkBeep(// duration,
                         20, 
