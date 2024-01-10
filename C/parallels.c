@@ -145,18 +145,8 @@ void SetBlinkDurations(String mode, double lightsOnToOffRatio, double tempo, dou
 void SetBeepDurations(String intonation, double soundToSilenceRatio, double tempo)
 {
   // Initialize sound and silence duration
-  if (intonation == "Constant") {
-    soundDuration = soundToSilenceRatio / tempo;
-    silenceDuration = (1 - soundToSilenceRatio) / tempo;
-  }
-
-  if (intonation == "Rising" || intonation == "Falling") {
-    soundDuration = soundToSilenceRatio / tempo / 12;
-    silenceDuration = (1 - soundToSilenceRatio) / tempo / 12;
-  } else {
-    soundDuration = soundToSilenceRatio / tempo / 24;
-    silenceDuration = (1 - soundToSilenceRatio) / tempo / 24;
-  }
+  soundDuration = soundToSilenceRatio / tempo;
+  silenceDuration = (1 - soundToSilenceRatio) / tempo;
 }
 
 // Helper method to set the target forward and turn speed for the wander base behavior
@@ -274,7 +264,7 @@ void WanderBlinkBeep(double duration,
     beepCycle = 0;
 
     // Variable used to calculate the frequency of each beep note
-    semitone = 0;
+    semitone = 1;
   }
 
   // MAIN LOOP
@@ -327,7 +317,9 @@ void WanderBlinkBeep(double duration,
           if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + acceleration * forwardDuration / 100) {
             move(1, acceleration * targetForwardSpeed / 100 / 100.0 * 255);
           } else {
-            acceleration += 1;
+            if (acceleration < 100) {
+              acceleration += 1;
+            }
           }
         }
 
@@ -336,7 +328,9 @@ void WanderBlinkBeep(double duration,
           if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + acceleration * forwardDuration / 100) {
             move(1, (100 - acceleration) * targetForwardSpeed / 100 / 100.0 * 255);
           } else {
-            acceleration += 1;
+            if (acceleration < 100) {
+              acceleration += 1;
+            }
           }
         }
 
@@ -392,7 +386,7 @@ void WanderBlinkBeep(double duration,
                                  round(brightness * targetBlueIntensity / 100));
             rgbled_7.show();
           } else {
-            if (brightness < 100){
+            if (brightness < 100) {
               brightness += 1;
             }
           }
@@ -406,7 +400,7 @@ void WanderBlinkBeep(double duration,
                                  round((100 - brightness) * targetBlueIntensity / 100));
             rgbled_7.show();
           } else {
-            if (brightness < 100){
+            if (brightness < 100) {
               brightness += 1;
             }
           }
@@ -427,7 +421,7 @@ void WanderBlinkBeep(double duration,
               rgbled_7.show();
             }
           } else {
-            if (brightness < 200){
+            if (brightness < 200) {
               brightness += 1;
             }
           }
@@ -448,7 +442,7 @@ void WanderBlinkBeep(double duration,
               rgbled_7.show();
             }
           } else {
-            if (brightness < 200){
+            if (brightness < 200) {
               brightness += 1;
             }
           }
@@ -483,57 +477,69 @@ void WanderBlinkBeep(double duration,
       // Start executing after the given phase
       if (getLastTime() - beepPhase >= 0) {
         if (beepIntonation == "Constant") {
-          if (getLastTime() - beepPhase < beepCycle / beepTempo + (semitone + 1) * soundDuration) {
+          if (getLastTime() - beepPhase < beepCycle / beepTempo + soundDuration) {
             buzzer.tone(currentPitch, soundDuration * 1000);
             _delay(float(silenceDuration));
           }
         }
 
         if (beepIntonation == "Rising") {
-          if(getLastTime() - beepPhase < beepCycle / beepTempo + (semitone + 1) * soundDuration) {
-            buzzer.tone(currentPitch, soundDuration * 1000);
-            _delay(float(silenceDuration));
+          if(getLastTime() - beepPhase < beepCycle / beepTempo + semitone * soundDuration / 12) {
+            buzzer.tone(currentPitch, soundDuration / 12 * 1000);
+            _delay(float(silenceDuration) / 12);
           } else {
-            semitone += 1;
             currentPitch = exp(log(beepPitch) + semitone / 12 * log(2));
+            
+            if (semitone < 12) {
+              semitone += 1;
+            }
           }
 
         }
 
         if (beepIntonation == "Falling") {
-          if (getLastTime() - beepPhase < beepCycle / beepTempo + (semitone + 1) * soundDuration) {
-            buzzer.tone(currentPitch, soundDuration * 1000);
-            _delay(float(silenceDuration));
+          if (getLastTime() - beepPhase < beepCycle / beepTempo + semitone * soundDuration / 12) {
+            buzzer.tone(currentPitch, soundDuration / 12 * 1000);
+            _delay(float(silenceDuration) / 12);
           } else {
-            semitone += 1;
             currentPitch = exp(log(beepPitch) - semitone / 12 * log(2));
+            
+            if (semitone < 12) {
+              semitone += 1;
+            }
           }
         }
 
         if (beepIntonation == "Rising-Falling") {
-          if (getLastTime() - beepPhase < beepCycle / beepTempo + (semitone + 1) * soundDuration) {
-            buzzer.tone(currentPitch, soundDuration * 1000);
-            _delay(float(silenceDuration));
+          if (getLastTime() - beepPhase < beepCycle / beepTempo + semitone * soundDuration / 24) {
+            buzzer.tone(currentPitch, soundDuration / 24 * 1000);
+            _delay(float(silenceDuration) / 24);
           } else {
-            semitone += 1;
             if (semitone < 12) {
               currentPitch = exp(log(beepPitch) + semitone / 12 * log(2));
             } else {
               currentPitch = exp(log(beepPitch) + (24 - semitone) / 12 * log(2));
             }
+
+            if (semitone < 24) {
+              semitone += 1;
+            }
           }
         }
 
         if (beepIntonation == "Falling-Rising") {
-          if (getLastTime() - beepPhase < beepCycle / beepTempo + (semitone + 1) * soundDuration) {
-            buzzer.tone(currentPitch, soundDuration * 1000);
-            _delay(float(silenceDuration));
+          if (getLastTime() - beepPhase < beepCycle / beepTempo + semitone * soundDuration / 24) {
+            buzzer.tone(currentPitch, soundDuration / 24 * 1000);
+            _delay(float(silenceDuration) / 24);
           } else {
-            semitone += 1;
             if (semitone < 12) {
               currentPitch = exp(log(beepPitch) - semitone / 12 * log(2));
             } else {
               currentPitch = exp(log(beepPitch) - (24 - semitone) / 12 * log(2));
+            }
+            
+            if (semitone < 24) {
+              semitone += 1;
             }
           }
         }
@@ -541,7 +547,7 @@ void WanderBlinkBeep(double duration,
 
       if (getLastTime() - beepPhase > (beepCycle + 1) / beepTempo) {
         beepCycle += 1;
-        semitone = 0;
+        semitone = 1;
       }
     }
   }
@@ -629,9 +635,9 @@ void setup()
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         0,              "Constant",         0,               0.5,            0.5,                          10,                           0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0.5,                 "",               0.1,                     5,          0.2,                         0.4,                               0, 
+                        0.5,                 "",               0.9,                     5,          0.2,                         0.4,                               0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepPhase
-                        400,          "Rising",         0.9,                    1,         0,                          0,                          0);
+                        400,          "Rising-Falling", 0.9,                     1,         0,                          0,                          0);
  
         timesButtonPressed = 0;
       }
