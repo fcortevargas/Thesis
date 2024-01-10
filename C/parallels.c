@@ -21,7 +21,8 @@ MeIR ir;
 float turnDuration;
 float forwardDuration;
 float lineTurnDuration;
-float turnSpeed;
+float targetForwardSpeed;
+float targetTurnSpeed;
 int acceleration;
 int wanderCycle;
 
@@ -95,7 +96,7 @@ double GenerateGaussian(double standardDeviation)
     return z0 * standardDeviation;
 }
 
-// Helper method to calculate forward, turn, and line turn durations for the wander base behavior
+// Helper method to set the forward, turn, and line turn durations for the wander base behavior
 void SetWanderDurations(double speed, double roundness, double turnRate, double cycleStandardDeviation)
 {
   // Set base turn duration based on input roundness and turn rate
@@ -121,6 +122,7 @@ void SetWanderDurations(double speed, double roundness, double turnRate, double 
   }
 }
 
+// Helper method to set the lights on and off durations for the blink base behavior
 void SetBlinkDurations(String mode, double lightsOffToOnRatio, double tempo, double cycleStandardDeviation)
 {
   // Set lights off duration based on input tempo
@@ -139,6 +141,7 @@ void SetBlinkDurations(String mode, double lightsOffToOnRatio, double tempo, dou
   lightsOnDuration = 1 / tempo - lightsOffDuration;
 }
 
+// Helper method to set the sound and silence durations for the blink base behavior
 void SetBeepDurations(String intonation, double silenceToSoundRatio, double tempo)
 {
   // Initialize sound and silence duration
@@ -156,10 +159,30 @@ void SetBeepDurations(String intonation, double silenceToSoundRatio, double temp
   }
 }
 
+// Helper method to set the target forward and turn speed for the wander base behavior
+void SetTargetSpeeds(double speed, double roundness, double speedStandardDeviation)
+{
+  // Add random normal variation to the input wander speed to get the target forward speed
+  targetForwardSpeed = speed + GenerateGaussian(speedStandardDeviation);
+
+  // Cap forward speed to 25 if it's lower than 25
+  if (targetForwardSpeed < 25) {
+    targetForwardSpeed = 25;
+  }
+
+  // Cap forward speed to 100 if it's higher than 100
+  if (targetForwardSpeed > 100) {
+    targetForwardSpeed = 100;
+  }
+
+  // Set target turn speed based on input roundness and target speed
+  targetTurnSpeed = targetForwardSpeed * roundness - targetForwardSpeed / 2;
+}
+
 // Helper method to set the target red, blue and green intensity for the blink base behavior
 void SetTargetIntensities(double temperature, double temperatureStandardDeviation)
 {
-  // Add random normal variation to the blink temperature to get the target temperature
+  // Add random normal variation to the input blink temperature to get the target temperature
   double targetTemperature = temperature + GenerateGaussian(temperatureStandardDeviation);
 
   // Cap temperature to zero if it's lower than zero
@@ -207,8 +230,8 @@ void WanderBlinkBeep(double duration,
 
   // If wander input is valid, initialize wander variables
   if (doWander) {
-    // Set turn speed based on input roundness and speed
-    turnSpeed = wanderSpeed * wanderRoundness - wanderSpeed / 2;
+    // Set the target forward and turning speeds based on given input
+    SetTargetSpeeds(wanderSpeed, wanderRoundness, wanderSpeedStandardDeviation);
     
     // Set turn, line turn and forward durations based on given input
     SetWanderDurations(wanderSpeed, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation);
@@ -224,7 +247,7 @@ void WanderBlinkBeep(double duration,
 
   // If blink input is valid, initialize blink variables
   if (doBlink) {
-    // Set lights on and off durations based on given input
+    // Set the target red, green and blue light intensities based on given input
     SetTargetIntensities(blinkTemperature, blinkTemperatureStandardDeviation);
 
     // Set lights on and off durations based on given input
@@ -275,7 +298,7 @@ void WanderBlinkBeep(double duration,
             // Turn left if right sensor detects a black line
             if ((0 ? (1 == 0 ? sensorReading == 0 : (sensorReading & 1) == 1)
                    : (1 == 0 ? sensorReading == 3 : (sensorReading & 1) == 0))) {
-                move(3, wanderSpeed / 100.0 * 255);
+                move(3, targetForwardSpeed / 100.0 * 255);
                 _delay(lineTurnDuration);
                 move(3, 0);
             }
@@ -283,7 +306,7 @@ void WanderBlinkBeep(double duration,
             // Turn right if left sensor detects a black line
             if ((0 ? (2 == 0 ? sensorReading == 0 : (sensorReading & 2) == 2)
                    : (2 == 0 ? sensorReading == 3 : (sensorReading & 2) == 0))) {
-                move(4, wanderSpeed / 100.0 * 255);
+                move(4, targetForwardSpeed / 100.0 * 255);
                 _delay(lineTurnDuration);
                 move(4, 0);
             }
@@ -295,14 +318,14 @@ void WanderBlinkBeep(double duration,
         // Constant mode
         if (wanderAcceleration.equals("Constant")){
           if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + forwardDuration) {
-            move(1, wanderSpeed / 100.0 * 255);
+            move(1, targetForwardSpeed / 100.0 * 255);
           } 
         }
 
         // Rising mode
         if (wanderAcceleration.equals("Rising")){
           if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + acceleration * forwardDuration / 100) {
-            move(1, acceleration * wanderSpeed / 100 / 100.0 * 255);
+            move(1, acceleration * targetForwardSpeed / 100 / 100.0 * 255);
           } else {
             acceleration += 1;
           }
@@ -311,7 +334,7 @@ void WanderBlinkBeep(double duration,
         // Falling mode
         if (wanderAcceleration.equals("Falling")){
           if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + acceleration * forwardDuration / 100) {
-            move(1, (100 - acceleration) * wanderSpeed / 100 / 100.0 * 255);
+            move(1, (100 - acceleration) * targetForwardSpeed / 100 / 100.0 * 255);
           } else {
             acceleration += 1;
           }
@@ -322,12 +345,12 @@ void WanderBlinkBeep(double duration,
             getLastTime() - wanderPhase < (wanderCycle + 1) / wanderTurnRate) {
           if (fmod(wanderCycle, 2) == 0) {
             // Turn right
-            motor_9.run(-wanderSpeed / 100.0 * 255);
-            motor_10.run(turnSpeed / 100.0 * 255);
+            motor_9.run(-targetForwardSpeed / 100.0 * 255);
+            motor_10.run(targetTurnSpeed / 100.0 * 255);
           } else {
             // Turn left
-            motor_9.run(-turnSpeed / 100.0 * 255);
-            motor_10.run(wanderSpeed / 100.0 * 255);
+            motor_9.run(-targetTurnSpeed / 100.0 * 255);
+            motor_10.run(targetForwardSpeed / 100.0 * 255);
           }
         }
 
@@ -338,6 +361,9 @@ void WanderBlinkBeep(double duration,
 
           // Reset to one
           acceleration = 1;
+
+          // Change target forward and turning speeds
+          SetTargetSpeeds(wanderSpeed, wanderRoundness, wanderSpeedStandardDeviation);
 
           // Change forward and turn durations
           SetWanderDurations(wanderSpeed, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation);
@@ -601,7 +627,7 @@ void setup()
         WanderBlinkBeep(// duration,
                         20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
-                        100,            "Constant",         0,               0.5,            0.5,                          0,                            0,           true, 
+                        100,            "Constant",         0,               0.5,            0.5,                          10,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOffToOnRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0.5,                 "Constant",       0.1,                     5,          0.2,                         0.4,                               0, 
                         // beepPitch, beepIntonation,   beepSilenceToSoundRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepPhase
