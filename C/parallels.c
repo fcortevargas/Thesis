@@ -123,10 +123,10 @@ void SetWanderDurations(double speed, double roundness, double turnRate, double 
 }
 
 // Helper method to set the lights on and off durations for the blink base behavior
-void SetBlinkDurations(String mode, double lightsOffToOnRatio, double tempo, double cycleStandardDeviation)
+void SetBlinkDurations(String mode, double lightsOnToOffRatio, double tempo, double cycleStandardDeviation)
 {
   // Set lights off duration based on input tempo
-  lightsOffDuration = lightsOffToOnRatio / tempo;
+  lightsOffDuration = (1 - lightsOnToOffRatio) / tempo;
 
   // Add random normal variation to the base turn duration
   lightsOffDuration += GenerateGaussian(cycleStandardDeviation);
@@ -142,20 +142,20 @@ void SetBlinkDurations(String mode, double lightsOffToOnRatio, double tempo, dou
 }
 
 // Helper method to set the sound and silence durations for the blink base behavior
-void SetBeepDurations(String intonation, double silenceToSoundRatio, double tempo)
+void SetBeepDurations(String intonation, double soundToSilenceRatio, double tempo)
 {
   // Initialize sound and silence duration
   if (intonation == "Constant") {
-    soundDuration = silenceToSoundRatio / tempo;
-    silenceDuration = (1 - silenceToSoundRatio) / tempo;
+    soundDuration = soundToSilenceRatio / tempo;
+    silenceDuration = (1 - soundToSilenceRatio) / tempo;
   }
 
   if (intonation == "Rising" || intonation == "Falling") {
-    soundDuration = silenceToSoundRatio / tempo / 12;
-    silenceDuration = (1 - silenceToSoundRatio) / tempo / 12;
+    soundDuration = soundToSilenceRatio / tempo / 12;
+    silenceDuration = (1 - soundToSilenceRatio) / tempo / 12;
   } else {
-    soundDuration = silenceToSoundRatio / tempo / 24;
-    silenceDuration = (1 - silenceToSoundRatio) / tempo / 24;
+    soundDuration = soundToSilenceRatio / tempo / 24;
+    silenceDuration = (1 - soundToSilenceRatio) / tempo / 24;
   }
 }
 
@@ -220,8 +220,8 @@ void SetTargetIntensities(double temperature, double temperatureStandardDeviatio
 // Method to execute robot's base behaviors wander, blink and beep
 void WanderBlinkBeep(double duration, 
                      double wanderSpeed, String wanderAcceleration, double wanderRoundness, double wanderTurnRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase, boolean stayInBounds, 
-                     double blinkTemperature, String blinkMode, double blinkLightsOffToOnRatio, double blinkTempo, double blinkCycleStandardDeviation, double blinkTemperatureStandardDeviation, double blinkPhase,
-                     double beepPitch, String beepIntonation, double beepSilenceToSoundRatio, double beepTempo, double beepCycleStandardDeviation, double beepPitchStandardDeviation, double beepPhase) 
+                     double blinkTemperature, String blinkMode, double blinkLightsOnToOffRatio, double blinkTempo, double blinkCycleStandardDeviation, double blinkTemperatureStandardDeviation, double blinkPhase,
+                     double beepPitch, String beepIntonation, double beepSoundToSilenceRatio, double beepTempo, double beepCycleStandardDeviation, double beepPitchStandardDeviation, double beepPhase) 
 {
   // INPUT CHECKS AND VARIABLE INITIALIZATION
 
@@ -243,7 +243,7 @@ void WanderBlinkBeep(double duration,
   }
 
   // Check if blink input is valid
-  CheckValidBlinkInput(blinkTemperature, blinkMode, blinkLightsOffToOnRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase);
+  CheckValidBlinkInput(blinkTemperature, blinkMode, blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase);
 
   // If blink input is valid, initialize blink variables
   if (doBlink) {
@@ -251,7 +251,7 @@ void WanderBlinkBeep(double duration,
     SetTargetIntensities(blinkTemperature, blinkTemperatureStandardDeviation);
 
     // Set lights on and off durations based on given input
-    SetBlinkDurations(blinkMode, blinkLightsOffToOnRatio, blinkTempo, blinkCycleStandardDeviation);
+    SetBlinkDurations(blinkMode, blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation);
 
     // Variable used to control the blink cycles
     blinkCycle = 0;
@@ -261,14 +261,14 @@ void WanderBlinkBeep(double duration,
   }
 
   // Check if beep input is valid
-  CheckValidBeepInput(beepPitch, beepIntonation, beepSilenceToSoundRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepPhase);
+  CheckValidBeepInput(beepPitch, beepIntonation, beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepPhase);
 
   if (doBeep) {
     // Initialize current pitch to target pitch
     currentPitch = beepPitch;
 
     // Set sound and silence durations based on given input
-    SetBeepDurations(beepIntonation, beepSilenceToSoundRatio, beepTempo);
+    SetBeepDurations(beepIntonation, beepSoundToSilenceRatio, beepTempo);
 
     // Variable used to control the beep cycles
     beepCycle = 0;
@@ -473,7 +473,7 @@ void WanderBlinkBeep(double duration,
           SetTargetIntensities(blinkTemperature, blinkTemperatureStandardDeviation);
 
           // Change lights on and off durations
-          SetBlinkDurations(blinkMode, blinkLightsOffToOnRatio, blinkTempo, blinkCycleStandardDeviation);
+          SetBlinkDurations(blinkMode, blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation);
         }
       }
     }
@@ -568,32 +568,32 @@ void CheckValidWanderInput(double speed, String acceleration, double roundness, 
     }
 }
 
-void CheckValidBlinkInput(double temperature, String mode, double lightsOffToOnRatio, double tempo, double cycleStandardDeviation, double temperatureStandardDeviation, double phase) 
+void CheckValidBlinkInput(double temperature, String mode, double lightsOnToOffRatio, double tempo, double cycleStandardDeviation, double temperatureStandardDeviation, double phase) 
 {
   boolean isValidTemperature = temperature >= 0 && temperature <= 1;
   boolean isValidMode = mode.equals("Constant") || mode.equals("Rising") || mode.equals("Falling") || mode.equals("Rising-Falling") || mode.equals("Falling-Rising");
-  boolean isValidLightsOffToOnRatio = lightsOffToOnRatio <= 1 && lightsOffToOnRatio >= 0;
+  boolean isValidLightsOnToOffRatio = lightsOnToOffRatio <= 1 && lightsOnToOffRatio >= 0;
   boolean isTempoPositive = tempo > 0;
   boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && temperatureStandardDeviation >= 0;
   boolean isValidPhase = phase >= 0;
 
-  if (isValidTemperature && isValidMode && isValidLightsOffToOnRatio && isTempoPositive && isValidStandardDeviation && isValidPhase) {
+  if (isValidTemperature && isValidMode && isValidLightsOnToOffRatio && isTempoPositive && isValidStandardDeviation && isValidPhase) {
     doBlink = true;
   } else {
     doBlink = false;
   }
 }
 
-void CheckValidBeepInput(double pitch, String intonation, double silenceToSoundRatio, double tempo, double cycleStandardDeviation, double pitchStandardDeviation, double phase) 
+void CheckValidBeepInput(double pitch, String intonation, double soundToSilenceRatio, double tempo, double cycleStandardDeviation, double pitchStandardDeviation, double phase) 
 {
   boolean isValidPitch = pitch > 0 && pitch < 5000;
   boolean isValidIntonation = intonation.equals("Constant") || intonation.equals("Rising") || intonation.equals("Falling") || intonation.equals("Rising-Falling") || intonation.equals("Falling-Rising");
-  boolean isValidSilenceToSoundRatio = silenceToSoundRatio <= 1 && silenceToSoundRatio >= 0;
+  boolean isValidSoundToSilenceRatio = soundToSilenceRatio <= 1 && soundToSilenceRatio >= 0;
   boolean isTempoPositive = tempo > 0;
   boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && pitchStandardDeviation >= 0;
   boolean isValidPhase = phase >= 0;
 
-  if (isValidPitch && isValidIntonation && isValidSilenceToSoundRatio && isTempoPositive && isValidStandardDeviation && isValidPhase) {
+  if (isValidPitch && isValidIntonation && isValidSoundToSilenceRatio && isTempoPositive && isValidStandardDeviation && isValidPhase) {
     doBeep = true;
   } else {
     doBeep = false;
@@ -625,13 +625,13 @@ void setup()
       // Happy
       if (timesButtonPressed == 1) {
         WanderBlinkBeep(// duration,
-                        20, 
+                        5, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
-                        100,            "Constant",         0,               0.5,            0.5,                          10,                            0,           true, 
-                        // blinkTemperature, blinkMode,        blinkLightsOffToOnRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0.5,                 "Constant",       0.1,                     5,          0.2,                         0.4,                               0, 
-                        // beepPitch, beepIntonation,   beepSilenceToSoundRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0);
+                        0,              "Constant",         0,               0.5,            0.5,                          10,                           0,           true, 
+                        // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
+                        0.5,                 "",               0.1,                     5,          0.2,                         0.4,                               0, 
+                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepPhase
+                        400,          "Rising",         0.9,                    1,         0,                          0,                          0);
  
         timesButtonPressed = 0;
       }
