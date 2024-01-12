@@ -239,28 +239,21 @@ void SetTargetPitch(double pitch, double pitchStandardDeviation)
   currentPitch = targetPitch;
 }
 
-// Helper function used to play a random sound based on a given probability
+// Helper function used to play a random semitone based on a given probability
 void PlayRandomSoundWithProbability(double duration, double randomSoundProbability, double randomSoundPitch, double randomSoundPitchStandardDeviation)
 {
   // Generate a random uniformly distributed number between 0 and 1
-  double randomNumber = (double)rand() / RAND_MAX;
+  double randomDouble = (double)rand() / RAND_MAX;
+
+  // Generate a random number between 1 and 12
+  int randomInteger = rand() % 12 + 1;
 
   // Add random normal variation to the input beep pitch to get the target pitch
   double targetRandomSoundPitch = randomSoundPitch + GenerateGaussian(randomSoundPitchStandardDeviation);
 
-  // Cap target pitch to 80 Hz if it's lower than 80 Hz
-  if (targetRandomSoundPitch < 80) {
-    targetRandomSoundPitch = 80;
-  }
-
-  // Cap target pitch to 80 Hz if it's higher than 80 Hz
-  if (targetRandomSoundPitch > 3000) {
-    targetRandomSoundPitch = 3000;
-  }
-
   // Compare random number with noiseProbability
   if (randomNumber < randomSoundProbability) {
-    buzzer.tone(targetRandomSoundPitch, duration * 1000); // Play sound for given duration if within probability
+    buzzer.tone(targetRandomSoundPitch, duration * 1000); // Play semitone for given duration if within probability
   } else {
     _delay(float(duration)); // Else play silence
   }
