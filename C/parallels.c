@@ -239,14 +239,14 @@ void SetTargetPitch(double pitch, double pitchStandardDeviation)
   currentPitch = targetPitch;
 }
 
-// Function to decide whether to play a randomsound based on probability
-void PlayRandomSoundWithProbability(double duration, double pitch, double pitchStandardDeviation, double randomSoundProbability)
+// Helper function used to play a random sound based on a given probability
+void PlayRandomSoundWithProbability(double duration, double randomSoundProbability, double randomSoundPitch, double randomSoundPitchStandardDeviation)
 {
   // Generate a random uniformly distributed number between 0 and 1
   double randomNumber = (double)rand() / RAND_MAX;
 
   // Add random normal variation to the input beep pitch to get the target pitch
-  double targetRandomSoundPitch = pitch + GenerateGaussian(pitchStandardDeviation);
+  double targetRandomSoundPitch = randomSoundPitch + GenerateGaussian(randomSoundPitchStandardDeviation);
 
   // Cap target pitch to 80 Hz if it's lower than 80 Hz
   if (targetRandomSoundPitch < 80) {
@@ -270,7 +270,7 @@ void PlayRandomSoundWithProbability(double duration, double pitch, double pitchS
 void WanderBlinkBeep(double duration, 
                      double wanderSpeed, String wanderAcceleration, double wanderRoundness, double wanderTurnRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase, boolean stayInBounds, 
                      double blinkTemperature, String blinkMode, double blinkLightsOnToOffRatio, double blinkTempo, double blinkCycleStandardDeviation, double blinkTemperatureStandardDeviation, double blinkPhase,
-                     double beepPitch, String beepIntonation, double beepSoundToSilenceRatio, double beepTempo, double beepCycleStandardDeviation, double beepPitchStandardDeviation, double beepRandomSoundProbability, double beepPhase) 
+                     double beepPitch, String beepIntonation, double beepSoundToSilenceRatio, double beepTempo, double beepCycleStandardDeviation, double beepPitchStandardDeviation, double beepRandomSoundProbability, double beepRandomSoundPitch, double beepRandomSoundPitchStandardDeviation, double beepPhase) 
 {
   // INPUT CHECKS AND VARIABLE INITIALIZATION
 
@@ -539,9 +539,6 @@ void WanderBlinkBeep(double duration,
           if (getLastTime() - beepPhase < beepCycle / beepTempo + soundDuration) {
             // Play the sound at the current pitch for the given duration
             buzzer.tone(currentPitch, soundDuration * 1000);
-            
-            // Play either sound or silence based on the given probability
-            PlayRandomSoundWithProbability(silenceDuration, beepPitch, beepPitchStandardDeviation, beepRandomSoundProbability);
           }
         }
 
@@ -549,9 +546,6 @@ void WanderBlinkBeep(double duration,
           if(getLastTime() - beepPhase < beepCycle / beepTempo + semitone * soundDuration / 12) {
             // Play the sound at the current pitch for the given duration
             buzzer.tone(currentPitch, soundDuration / 12 * 1000);
-
-            // Play either sound or silence based on the given probability
-            PlayRandomSoundWithProbability(silenceDuration / 12, beepPitch, beepPitchStandardDeviation, beepRandomSoundProbability);
           } else {
             // Change current pitch to next rising semitone
             currentPitch = exp(log(targetPitch) + semitone / 12 * log(2));
@@ -568,9 +562,6 @@ void WanderBlinkBeep(double duration,
           if (getLastTime() - beepPhase < beepCycle / beepTempo + semitone * soundDuration / 12) {
             // Play the sound at the current pitch for the given duration
             buzzer.tone(currentPitch, soundDuration / 12 * 1000);
-            
-            // Play either sound or silence based on the given probability
-            PlayRandomSoundWithProbability(silenceDuration / 12, beepPitch, beepPitchStandardDeviation, beepRandomSoundProbability);
           } else {
             // Change current pitch to next falling semitone
             currentPitch = exp(log(targetPitch) - semitone / 12 * log(2));
@@ -586,9 +577,6 @@ void WanderBlinkBeep(double duration,
           if (getLastTime() - beepPhase < beepCycle / beepTempo + semitone * soundDuration / 24) {
             // Play the sound at the current pitch for the given duration
             buzzer.tone(currentPitch, soundDuration / 24 * 1000);
-
-            // Play either sound or silence based on the given probability
-            PlayRandomSoundWithProbability(silenceDuration / 24, beepPitch, beepPitchStandardDeviation, beepRandomSoundProbability);
           } else {
             // Change current pitch to next rising semitone
             if (semitone < 12) {
@@ -608,9 +596,6 @@ void WanderBlinkBeep(double duration,
           if (getLastTime() - beepPhase < beepCycle / beepTempo + semitone * soundDuration / 24) {
             // Play the sound at the current pitch for the given duration
             buzzer.tone(currentPitch, soundDuration / 24 * 1000);
-
-            // Play either sound or silence based on the given probability
-            PlayRandomSoundWithProbability(silenceDuration / 24, beepPitch, beepPitchStandardDeviation, beepRandomSoundProbability);
           } else {
             // Change current pitch to next falling semitone
             if (semitone < 12) {
@@ -625,20 +610,26 @@ void WanderBlinkBeep(double duration,
             }
           }
         }
-      }
 
-      if (getLastTime() - beepPhase > (beepCycle + 1) / beepTempo) {
-        // Increase count of cycles by one
-        beepCycle += 1;
+        // Play either sound or silence based on the given probability for the given duration
+        if (getLastTime() - beepPhase > beepCycle / beepTempo + soundDuration && 
+            getLastTime() - beepPhase < (beepCycle + 1) / beepTempo) {
+          PlayRandomSoundWithProbability(silenceDuration, beepRandomSoundProbability, beepRandomSoundPitch, beepRandomSoundPitchStandardDeviation);
+        }
 
-        // Reset semitone to one
-        semitone = 1;
+        if (getLastTime() - beepPhase > (beepCycle + 1) / beepTempo) {
+          // Increase count of cycles by one
+          beepCycle += 1;
 
-        // Change  the target pitch
-        SetTargetPitch(beepPitch, beepPitchStandardDeviation);
+          // Reset semitone to one
+          semitone = 1;
 
-        // Change sound and silence durations
-        SetBeepDurations(beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation);
+          // Change  the target pitch
+          SetTargetPitch(beepPitch, beepPitchStandardDeviation);
+
+          // Change sound and silence durations
+          SetBeepDurations(beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation);
+        }
       }
     }
   }
@@ -722,13 +713,13 @@ void setup()
       // Happy Blink & Wander
       if (timesButtonPressed == 0) {
         WanderBlinkBeep(// duration,
-                        20, 
+                        5, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         100,            "Constant",         0,               0.5,            0.5,                          10,                           0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0.5,                 "Constant",       0.9,                     5,          0.2,                         0.4,                               0, 
-                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepRandomSoundPitch, beepRandomSoundPitchStandardDeviation, beepPhase
+                        0,            "",               0,                       0,         0,                          0,                          0,                          0,                    0,                                     0);
       }
 
       // Happy Beep
@@ -739,85 +730,83 @@ void setup()
                         0,              "",                 0,               0,              0,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
-                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        700,          "Rising",         0.6,                     3.5,       0.05,                       100,                        0.5,                        0);
+                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepRandomSoundPitch, beepRandomSoundPitchStandardDeviation, beepPhase
+                        700,          "Rising",         0.75,                    2,         0.1,                        100,                        0.8,                        800,                  50,                                    0);
       
+        // Reset the count of times the remote control button has been pressed
         timesButtonPressed = 0;
       }
 
       // Sad Blink & Wander
       if (timesButtonPressed == 3) {
         WanderBlinkBeep(// duration,
-                        20, 
+                        5, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         0,              "",                 0,               0,              0,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
-                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepRandomSoundPitch, beepRandomSoundPitchStandardDeviation, beepPhase
+                        0,            "",               0,                       0,         0,                          0,                          0,                          0,                    0,                                     0);
       }
 
       // Sad Beep
       if (timesButtonPressed == 4) {
         WanderBlinkBeep(// duration,
-                        20, 
+                        5, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         0,              "",                 0,               0,              0,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
-                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        80,          "Falling",        0.8,                    0.5,         0.1,                        50,                         0,                          0);
+                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepRandomSoundPitch, beepRandomSoundPitchStandardDeviation, beepPhase
+                        80,          "Falling",        0.8,                    0.5,         0.1,                        50,                         0,                          0,                    0,                                     0);
       }
 
       // Angry Blink & Wander
       if (timesButtonPressed == 5) {
         WanderBlinkBeep(// duration,
-                        20, 
+                        5, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         0,              "",                 0,               0,              0,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
-                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepRandomSoundPitch, beepRandomSoundPitchStandardDeviation, beepPhase
+                        0,            "",               0,                       0,         0,                          0,                          0,                          0,                    0,                                     0);
       }
 
       // Angry Beep
       if (timesButtonPressed == 6) {
         WanderBlinkBeep(// duration,
-                        20, 
+                        5, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         0,              "",                 0,               0,              0,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
-                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepRandomSoundPitch, beepRandomSoundPitchStandardDeviation, beepPhase
+                        0,            "",               0,                       0,         0,                          0,                          0,                          0,                    0,                                     0);
       }
 
       // Afraid Blink & Wander
       if (timesButtonPressed == 7) {
         WanderBlinkBeep(// duration,
-                        20, 
+                        5, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         0,              "",                 0,               0,              0,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
-                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepRandomSoundPitch, beepRandomSoundPitchStandardDeviation, beepPhase
+                        0,            "",               0,                       0,         0,                          0,                          0,                          0,                    0,                                     0);
       }
 
       // Afraid Beep
       if (timesButtonPressed == 8) {
         WanderBlinkBeep(// duration,
-                        20, 
+                        5, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         0,              "",                 0,               0,              0,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
-                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
-        
-        // Reset the count of times the remote control button has been pressed
-        timesButtonPressed = 0;
+                        // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepRandomSoundPitch, beepRandomSoundPitchStandardDeviation, beepPhase
+                        0,            "",               0,                       0,         0,                          0,                          0,                          0,                    0,                                     0);
       }
     }
     _loop();
