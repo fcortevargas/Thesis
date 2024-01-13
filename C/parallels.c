@@ -742,11 +742,11 @@ void setup()
       timesButtonPressed += 1;
 
       // Happy Blink & Wander
-      if (timesButtonPressed == 1) {
+      if (timesButtonPressed == 0) {
         WanderBlinkBeep(// duration,
-                        5, 
+                        20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
-                        100,            "Constant",         0,               0.5,            0.5,                          10,                           0,           true, 
+                        100,            "Constant",         0,               0.5,            0.5,                          0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0.5,                 "Constant",       0.9,                     5,          0.2,                         0.4,                               0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
@@ -754,9 +754,9 @@ void setup()
       }
 
       // Happy Beep
-      if (timesButtonPressed == 2) {
+      if (timesButtonPressed == 0) {
         WanderBlinkBeep(// duration,
-                        5, 
+                        20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         0,              "",                 0,               0,              0,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
@@ -769,75 +769,84 @@ void setup()
       }
 
       // Sad Blink & Wander
-      if (timesButtonPressed == 3) {
+      if (timesButtonPressed == 0) {
         WanderBlinkBeep(// duration,
-                        5, 
+                        20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
-                        0,              "",                 0,               0,              0,                            0,                            0,           true, 
+                        30,            "Constant",          1,               0.5,            0.2,                          0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   "",               0,                       0,          0,                           0,                                 0, 
+                        0,                 "Rising-Falling",   0.5,                     0.1,        0.5,                         0.1,                              0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
                         0,            "",               0,                       0,         0,                          0,                          0,                          0);
       }
 
       // Sad Beep
-      if (timesButtonPressed == 4) {
+      if (timesButtonPressed == 0) {
         WanderBlinkBeep(// duration,
-                        5, 
+                        20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         0,              "",                 0,               0,              0,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        100,          "Falling",        0.5,                     0.5,       0.2,                        20,                         0.2,                        0);
+
+        // Reset the count of times the remote control button has been pressed
+        timesButtonPressed = 0;
       }
 
       // Angry Blink & Wander
-      if (timesButtonPressed == 5) {
+      if (timesButtonPressed == 0) {
         WanderBlinkBeep(// duration,
-                        5, 
+                        20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
-                        0,              "",                 0,               0,              0,                            0,                            0,           true, 
+                        100,            "Constant",           0,               5,            1,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   "",               0,                       0,          0,                           0,                                 0, 
+                        1,                   "Rising",         0.95,                    6,          0.1,                         0,                                 0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
                         0,            "",               0,                       0,         0,                          0,                          0,                          0);
       }
 
       // Angry Beep
-      if (timesButtonPressed == 6) {
+      if (timesButtonPressed == 0) {
         WanderBlinkBeep(// duration,
-                        5, 
+                        20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         0,              "",                 0,               0,              0,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        900,          "Rising-Falling", 0.9,                    4,         0.2,                        100,                        0.4,                        0);
+        
+        // Reset the count of times the remote control button has been pressed
+        timesButtonPressed = 0;
       }
 
       // Afraid Blink & Wander
-      if (timesButtonPressed == 7) {
+      if (timesButtonPressed == 1) {
         WanderBlinkBeep(// duration,
-                        5, 
+                        20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
-                        0,              "",                 0,               0,              0,                            0,                            0,           true, 
+                        40,             "Falling",          0,               8,              0.2,                          10,                           0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   "",               0,                       0,          0,                           0,                                 0, 
+                        0.3,                 "Rising-Falling", 1,                     0.1,        0.5,                         0.05,                              5, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
                         0,            "",               0,                       0,         0,                          0,                          0,                          0);
       }
 
       // Afraid Beep
-      if (timesButtonPressed == 8) {
+      if (timesButtonPressed == 2) {
         WanderBlinkBeep(// duration,
-                        5, 
+                        20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
                         0,              "",                 0,               0,              0,                            0,                            0,           true, 
                         // blinkTemperature, blinkMode,        blinkLightsOnToOffRatio, blinkTempo, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   "",               0,                       0,          0,                           0,                                 0, 
+                        0,                   "Constant",       1,                       1,          0,                           0,                                 0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        200,          "Falling-Rising", 0.3,                     0.2,       0.2,                        50,                         0.1,                        5);
+      
+        // Reset the count of times the remote control button has been pressed
+        timesButtonPressed = 0;
       }
     }
     _loop();
