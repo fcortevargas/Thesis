@@ -742,7 +742,7 @@ void setup()
       timesButtonPressed += 1;
 
       // Happy Blink & Wander
-      if (timesButtonPressed == 0) {
+      if (timesButtonPressed == 1) {
         WanderBlinkBeep(// duration,
                         20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
@@ -754,7 +754,7 @@ void setup()
       }
 
       // Happy Beep
-      if (timesButtonPressed == 0) {
+      if (timesButtonPressed == 2) {
         WanderBlinkBeep(// duration,
                         20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
@@ -763,13 +763,10 @@ void setup()
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
                         700,          "Rising",         0.8,                     3,         0.2,                        100,                        0.4,                        0);
-      
-        // Reset the count of times the remote control button has been pressed
-        timesButtonPressed = 0;
       }
 
       // Sad Blink & Wander
-      if (timesButtonPressed == 0) {
+      if (timesButtonPressed == 3) {
         WanderBlinkBeep(// duration,
                         20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
@@ -781,7 +778,7 @@ void setup()
       }
 
       // Sad Beep
-      if (timesButtonPressed == 0) {
+      if (timesButtonPressed == 4) {
         WanderBlinkBeep(// duration,
                         20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
@@ -790,13 +787,10 @@ void setup()
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
                         100,          "Falling",        0.5,                     0.5,       0.2,                        20,                         0.2,                        0);
-
-        // Reset the count of times the remote control button has been pressed
-        timesButtonPressed = 0;
       }
 
       // Angry Blink & Wander
-      if (timesButtonPressed == 0) {
+      if (timesButtonPressed == 5) {
         WanderBlinkBeep(// duration,
                         20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
@@ -808,7 +802,7 @@ void setup()
       }
 
       // Angry Beep
-      if (timesButtonPressed == 0) {
+      if (timesButtonPressed == 6) {
         WanderBlinkBeep(// duration,
                         20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
@@ -817,13 +811,10 @@ void setup()
                         0,                   "",               0,                       0,          0,                           0,                                 0, 
                         // beepPitch, beepIntonation,   beepSoundToSilenceRatio, beepTempo, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
                         900,          "Rising-Falling", 0.9,                    4,         0.2,                        100,                        0.4,                        0);
-        
-        // Reset the count of times the remote control button has been pressed
-        timesButtonPressed = 0;
       }
 
       // Afraid Blink & Wander
-      if (timesButtonPressed == 1) {
+      if (timesButtonPressed == 7) {
         WanderBlinkBeep(// duration,
                         20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
@@ -835,7 +826,7 @@ void setup()
       }
 
       // Afraid Beep
-      if (timesButtonPressed == 2) {
+      if (timesButtonPressed == 8) {
         WanderBlinkBeep(// duration,
                         20, 
                         // wanderSpeed, wanderAcceleration, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase, stayInBounds
