@@ -98,22 +98,22 @@ double GenerateGaussian(double standardDeviation)
 }
 
 // Helper method to set the forward, turn, and line turn durations for the wander base behavior
-void SetWanderDurations(double speed, double roundness, double cycleRate, double cycleStandardDeviation)
+void SetWanderDurations(double speed, double turnToForwardRatio, double cycleRate, double cycleStandardDeviation)
 {
-  // Set base turn duration based on input roundness and cycle rate
-  turnDuration = (0.2 * roundness + 0.6) / cycleRate;
+  // Set base forward duration based on input cycle rate
+  forwardDuration = (1 - turnToForwardRatio) / cycleRate;
 
   // Add random normal variation to the base turn duration
-  turnDuration += GenerateGaussian(cycleStandardDeviation);
+  forwardDuration += GenerateGaussian(cycleStandardDeviation);
 
-  // Cap the turn duration to be positive
-  turnDuration < 0 ? 0 : turnDuration;
+  // Cap the forward duration to be positive
+  forwardDuration < 0 ? 0 : forwardDuration;
 
-  // Cap the turn duration based on input cycle rate
-  turnDuration > 1 / cycleRate ? 1 / cycleRate : turnDuration;
+  // Cap the forward duration based on input cycle rate
+  forwardDuration > 1 / cycleRate ? 1 / cycleRate : forwardDuration;
 
-  // Set forward duration
-  forwardDuration = 1 / cycleRate - turnDuration;
+  // Set turn duration
+  turnDuration = 1 / cycleRate - forwardDuration;
 
   // Set line turn duration
   if (speed <= 100 && speed >= 50) {
@@ -178,7 +178,7 @@ void SetTargetSpeeds(double speed, double roundness, double speedStandardDeviati
   }
 
   // Set target turn speed based on input roundness and target speed
-  targetTurnSpeed = targetForwardSpeed * roundness - targetForwardSpeed / 2;
+  targetTurnSpeed = -targetForwardSpeed / 2 + 4 * targetForwardSpeed * roundness - 4 * targetForwardSpeed * pow(roundness, 2);
 }
 
 // Helper method to set the target red, blue and green intensity for the blink base behavior
@@ -239,30 +239,30 @@ void SetTargetPitch(double pitch, double pitchStandardDeviation)
   currentPitch = targetPitch;
 }
 
-// Helper function used to play a random note based on a given probability
-void PlayRandomNoteWithProbability(double slope, double randomNoteProbability, double pitchStandardDeviation)
+// Helper function used to play a random sound based on a given probability
+void PlayRandomSoundWithProbability(double slope, double randomSoundProbability, double pitchStandardDeviation)
 {
   // Generate a random uniformly distributed number between 0 and 1
   double randomNumber = (double)rand() / RAND_MAX;
 
-  // Initialize variables for the random note and semitone
-  double randomNote;
+  // Initialize variables for the random pitch and semitone
+  double randomPitch;
   int randomSemitone;
 
   if (slope == 0) {
-    // Add random normal variation to the target beep pitch to get a random note
-    randomNote = targetPitch + GenerateGaussian(pitchStandardDeviation);
+    // Add random normal variation to the target beep pitch
+    randomPitch = targetPitch + GenerateGaussian(pitchStandardDeviation);
   } else {
     // Generate a random semitone between 1 and 12
     randomSemitone = rand() % 12 + 1;
 
-    // Get a random note within the 12 rising semitones of the target pitch
-    randomNote = exp(log(targetPitch) + slope * randomSemitone / 12 * log(2));
+    // Get pitch of random semitone of the target pitch
+    randomPitch = exp(log(targetPitch) + slope * randomSemitone / 12 * log(2));
   }
 
   // Compare random number with noiseProbability
-  if (randomNumber < randomNoteProbability) {
-    buzzer.tone(randomNote, silenceDuration * 1000); // Play note for given duration if within probability
+  if (randomNumber < randomSoundProbability) {
+    buzzer.tone(randomPitch, silenceDuration * 1000); // Play note for given duration if within probability
   } else {
     _delay(float(silenceDuration)); // Else play silence
   }
@@ -270,14 +270,14 @@ void PlayRandomNoteWithProbability(double slope, double randomNoteProbability, d
 
 // Method to execute robot's base behaviors wander, blink and beep
 void WanderBlinkBeep(double duration, boolean stayInBounds,
-                     double wanderSpeed, double wanderSlope, double wanderRoundness, double wanderCycleRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase, 
+                     double wanderSpeed, double wanderSlope, double wanderRoundness, double wanderTurnToForwardRatio, double wanderCycleRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase, 
                      double blinkTemperature, double blinkSlope, double blinkLightsOnToOffRatio, double blinkCycleRate, double blinkCycleStandardDeviation, double blinkTemperatureStandardDeviation, double blinkPhase,
-                     double beepPitch, double beepSlope, double beepSoundToSilenceRatio, double beepCycleRate, double beepCycleStandardDeviation, double beepPitchStandardDeviation, double beepRandomNoteProbability, double beepPhase) 
+                     double beepPitch, double beepSlope, double beepSoundToSilenceRatio, double beepCycleRate, double beepCycleStandardDeviation, double beepPitchStandardDeviation, double beepRandomSoundProbability, double beepPhase) 
 {
   // INPUT CHECKS AND VARIABLE INITIALIZATION
 
   // Check if wander input is valid
-  CheckValidWanderInput(wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase);
+  CheckValidWanderInput(wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase);
 
   // If wander input is valid, initialize wander variables
   if (doWander) {
@@ -285,7 +285,7 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
     SetTargetSpeeds(wanderSpeed, wanderRoundness, wanderSpeedStandardDeviation);
     
     // Set turn, line turn and forward durations based on given input
-    SetWanderDurations(wanderSpeed, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation);
+    SetWanderDurations(wanderSpeed, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation);
 
     // Variable used to determine if robot should turn left or right
     wanderCycle = 0;
@@ -313,7 +313,7 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
   }
 
   // Check if beep input is valid
-  CheckValidBeepInput(beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepPhase);
+  CheckValidBeepInput(beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
 
   if (doBeep) {
     // Set the target pitch based on given input
@@ -325,7 +325,7 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
     // Variable used to control the beep cycles
     beepCycle = 0;
 
-    // Variable used to calculate the frequency of each beep note
+    // Variable used to compute the pitch of each note
     semitone = 1;
   }
 
@@ -422,7 +422,7 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
           SetTargetSpeeds(wanderSpeed, wanderRoundness, wanderSpeedStandardDeviation);
 
           // Change forward and turn durations
-          SetWanderDurations(wanderSpeed, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation);
+          SetWanderDurations(wanderSpeed, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation);
         }
     }
 
@@ -537,7 +537,7 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
         // Play either a random note or silence based on the given probability for the silence duration
         if (getLastTime() - beepPhase > beepCycle / beepCycleRate + soundDuration && 
             getLastTime() - beepPhase < (beepCycle + 1) / beepCycleRate) {
-          PlayRandomNoteWithProbability(beepSlope, beepRandomNoteProbability, beepPitchStandardDeviation);
+          PlayRandomSoundWithProbability(beepSlope, beepRandomSoundProbability, beepPitchStandardDeviation);
         }
 
         if (getLastTime() - beepPhase > (beepCycle + 1) / beepCycleRate) {
@@ -563,16 +563,17 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
   motor_10.run(0);
 }
 
-void CheckValidWanderInput(double speed, double slope, double roundness, double cycleRate, double cycleStandardDeviation, double speedStandardDeviation, double phase)
+void CheckValidWanderInput(double speed, double slope, double roundness, double turnToForwardRatio, double cycleRate, double cycleStandardDeviation, double speedStandardDeviation, double phase)
 {
   boolean isValidSpeed = speed >= 25 && speed <= 100;
-  boolean isCycleRatePositive = cycleRate > 0;
   boolean isValidSlope = slope >= -5 && slope <= 5;
   boolean isValidRoundness = roundness >= 0 && roundness <= 1;
+  boolean isValidTurnToForwardRatio = turnToForwardRatio <= 1 && turnToForwardRatio > 0;
+  boolean isCycleRatePositive = cycleRate > 0;
   boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && speedStandardDeviation >= 0;
   boolean isValidPhase = phase >= 0;
 
-  doWander = isValidSpeed && isCycleRatePositive && isValidSlope && isValidRoundness && isValidStandardDeviation && isValidPhase;
+  doWander = isValidSpeed && isValidSlope && isValidRoundness && isValidTurnToForwardRatio && isCycleRatePositive && isValidStandardDeviation && isValidPhase;
 }
 
 void CheckValidBlinkInput(double temperature, double slope, double lightsOnToOffRatio, double cycleRate, double cycleStandardDeviation, double temperatureStandardDeviation, double phase) 
@@ -587,16 +588,17 @@ void CheckValidBlinkInput(double temperature, double slope, double lightsOnToOff
   doBlink = isValidTemperature && isValidSlope && isValidLightsOnToOffRatio && isCycleRatePositive && isValidStandardDeviation && isValidPhase;
 }
 
-void CheckValidBeepInput(double pitch, double slope, double soundToSilenceRatio, double cycleRate, double cycleStandardDeviation, double pitchStandardDeviation, double phase) 
+void CheckValidBeepInput(double pitch, double slope, double soundToSilenceRatio, double cycleRate, double cycleStandardDeviation, double pitchStandardDeviation, double randomSoundProbability, double phase) 
 {
   boolean isValidPitch = pitch >= 80 && pitch <= 3000;
   boolean isValidSlope = (slope < 0 && slope >= log(40 / pitch) / log(2)) || (slope > 0 && slope <= log(6000 / pitch) / log(2)) || slope == 0;
   boolean isValidSoundToSilenceRatio = soundToSilenceRatio <= 1 && soundToSilenceRatio >= 0;
   boolean isCycleRatePositive = cycleRate > 0;
   boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && pitchStandardDeviation >= 0;
+  boolean isValidRandomSoundProbability = randomSoundProbability <= 1 && randomSoundProbability >= 0;
   boolean isValidPhase = phase >= 0;
 
-  doBeep = isValidPitch && isValidSlope && isValidSoundToSilenceRatio && isCycleRatePositive && isValidStandardDeviation && isValidPhase;
+  doBeep = isValidPitch && isValidSlope && isValidSoundToSilenceRatio && isCycleRatePositive && isValidStandardDeviation && isValidRandomSoundProbability && isValidPhase;
 }
 
 void _delay(float seconds) 
@@ -625,8 +627,8 @@ void setup()
       if (timesButtonPressed == 1) {
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        100,            0,           0,               0.5,             0.5,                          0,                            0,
+                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
+                        100,            0,           1,               0.8,                      0.5,             0.5,                          0,                            0,
                         // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0.5,                 0,          0.9,                     5,              0.2,                         0.4,                               0, 
                         // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
@@ -637,8 +639,8 @@ void setup()
       if (timesButtonPressed == 2) {
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              0,           0,               0,               0,                            0,                            0,         
+                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
+                        0,              0,           0,               0,                        0,               0,                            0,                            0,         
                         // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   0,          0,                       0,              0,                           0,                                 0,
                         // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
@@ -649,8 +651,8 @@ void setup()
       if (timesButtonPressed == 3) {
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        30,             0,           1,               0.5,             0.2,                          0,                            0,
+                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
+                        35,             0,           0.5,             0.8,                      0.5,             0.2,                          0,                            0,
                         // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   -1,         0.5,                     0.1,            0.5,                         0.1,                               0, 
                         // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
@@ -661,8 +663,8 @@ void setup()
       if (timesButtonPressed == 4) {
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              0,           0,               0,               0,                            0,                            0,         
+                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
+                        0,              0,           0,               0,                        0,               0,                            0,                            0,         
                         // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   0,          0,                       0,              0,                           0,                                 0,
                         // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
@@ -673,8 +675,8 @@ void setup()
       if (timesButtonPressed == 5) {
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true, 
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        100,            0,           0,               5,               1,                            0,                            0,     
+                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
+                        100,            0,           0,               0.8,                      5,               1,                            0,                            0,     
                         // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         1,                   1,          0.95,                    6,              0.1,                         0,                                 0, 
                         // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
@@ -685,8 +687,8 @@ void setup()
       if (timesButtonPressed == 6) {
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              0,           0,               0,               0,                            0,                            0,         
+                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
+                        0,              0,           0,               0,                        0,               0,                            0,                            0,         
                         // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   0,          0,                       0,              0,                           0,                                 0,
                         // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
@@ -697,8 +699,8 @@ void setup()
       if (timesButtonPressed == 7) {
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        40,             0,           0,               8,               0.2,                          10,                           0,         
+                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
+                        40,             0,           0,               0.8,                      6,               0.1,                          10,                           0,         
                         // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0.3,                 -1,         1,                       0.1,            0.5,                         0.05,                              5, 
                         // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
@@ -709,8 +711,8 @@ void setup()
       if (timesButtonPressed == 8) {
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              0,           0,               0,               0,                            0,                            0,            
+                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
+                        0,              0,           0,               0,                        0,               0,                            0,                            0,         
                         // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
                         0,                   0,          1,                       1,              0,                           0,                                 0, 
                         // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
