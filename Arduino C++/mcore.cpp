@@ -240,7 +240,7 @@ void SetTargetPitch(double pitch, double pitchStandardDeviation)
 }
 
 // Helper function used to play a random note based on a given probability
-void PlayRandomNoteWithProbability(String slope, double randomNoteProbability)
+void PlayRandomNoteWithProbability(double slope, double randomNoteProbability, double pitchStandardDeviation)
 {
   // Generate a random uniformly distributed number between 0 and 1
   double randomNumber = (double)rand() / RAND_MAX;
@@ -249,44 +249,15 @@ void PlayRandomNoteWithProbability(String slope, double randomNoteProbability)
   double randomNote;
   int randomSemitone;
 
-  if (slope == "Rising") {
+  if (slope == 0) {
+    // Add random normal variation to the target beep pitch to get a random note
+    randomNote = targetPitch + GenerateGaussian(pitchStandardDeviation);
+  } else {
     // Generate a random semitone between 1 and 12
     randomSemitone = rand() % 12 + 1;
 
     // Get a random note within the 12 rising semitones of the target pitch
-    randomNote = exp(log(targetPitch) + randomSemitone / 12 * log(2));
-  }
-
-  if (slope == "Falling") {
-    // Generate a random semitone between 1 and 12
-    randomSemitone = rand() % 12 + 1;
-
-    // Get a random note within the 12 falling semitones of the target pitch
-    randomNote = exp(log(targetPitch) - randomSemitone / 12 * log(2));
-  }
-
-  if (slope == "Rising-Falling") {
-    // Generate a random semitone between 1 and 24
-    randomSemitone = rand() % 24 + 1;
-
-    // Get a random note within the 12 rising or falling semitones of the target pitch
-    if (randomSemitone < 12) {
-      randomNote = exp(log(targetPitch) + randomSemitone / 12 * log(2));
-    } else {
-      randomNote = exp(log(targetPitch) + (24 - randomSemitone) / 12 * log(2));
-    }
-  }
-
-  if (slope == "Falling-Rising") {
-    // Generate a random semitone between 1 and 24
-    randomSemitone = rand() % 24 + 1;
-
-    // Get a random note within the 12 falling or rising semitones of the target pitch
-    if (randomSemitone < 12) {
-      randomNote = exp(log(targetPitch) - randomSemitone / 12 * log(2));
-    } else {
-      randomNote = exp(log(targetPitch) - (24 - randomSemitone) / 12 * log(2));
-    }
+    randomNote = exp(log(targetPitch) + slope * randomSemitone / 12 * log(2));
   }
 
   // Compare random number with noiseProbability
@@ -299,9 +270,9 @@ void PlayRandomNoteWithProbability(String slope, double randomNoteProbability)
 
 // Method to execute robot's base behaviors wander, blink and beep
 void WanderBlinkBeep(double duration, boolean stayInBounds,
-                     double wanderSpeed, String wanderSlope, double wanderRoundness, double wanderTurnRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase, 
-                     double blinkTemperature, String blinkSlope, double blinkLightsOnToOffRatio, double blinkCycleRate, double blinkCycleStandardDeviation, double blinkTemperatureStandardDeviation, double blinkPhase,
-                     double beepPitch, String beepSlope, double beepSoundToSilenceRatio, double beepCycleRate, double beepCycleStandardDeviation, double beepPitchStandardDeviation, double beepRandomNoteProbability, double beepPhase) 
+                     double wanderSpeed, double wanderSlope, double wanderRoundness, double wanderTurnRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase, 
+                     double blinkTemperature, double blinkSlope, double blinkLightsOnToOffRatio, double blinkCycleRate, double blinkCycleStandardDeviation, double blinkTemperatureStandardDeviation, double blinkPhase,
+                     double beepPitch, double beepSlope, double beepSoundToSilenceRatio, double beepCycleRate, double beepCycleStandardDeviation, double beepPitchStandardDeviation, double beepRandomNoteProbability, double beepPhase) 
 {
   // INPUT CHECKS AND VARIABLE INITIALIZATION
 
@@ -397,16 +368,16 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
         // Move forward for given duration
 
         // Constant slope
-        if (wanderSlope.equals("Constant")) {
+        if (wanderSlope == 0) {
           if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + forwardDuration) {
             move(1, targetForwardSpeed / 100.0 * 255);
           } 
         }
 
         // Rising slope
-        if (wanderSlope.equals("Rising")) {
+        if (wanderSlope > 0) {
           if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + acceleration * forwardDuration / 100) {
-            move(1, acceleration * targetForwardSpeed / 100 / 100.0 * 255);
+            move(1, wanderSlope * acceleration * targetForwardSpeed / 100 / 100.0 * 255);
           } else {
             if (acceleration < 100) {
               acceleration += 1;
@@ -415,9 +386,9 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
         }
 
         // Falling slope
-        if (wanderSlope.equals("Falling")) {
+        if (wanderSlope < 0) {
           if (getLastTime() - wanderPhase < wanderCycle / wanderTurnRate + acceleration * forwardDuration / 100) {
-            move(1, (100 - acceleration) * targetForwardSpeed / 100 / 100.0 * 255);
+            move(1, wanderSlope * (acceleration - 100) * targetForwardSpeed / 100 / 100.0 * 255);
           } else {
             if (acceleration < 100) {
               acceleration += 1;
@@ -462,7 +433,7 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
         // Turn lights on for given duration
 
         // Constant slope
-        if (blinkSlope.equals("Constant")) {
+        if (blinkSlope == 0) {
           if (getLastTime() - blinkPhase < blinkCycle / blinkCycleRate + lightsOnDuration) {
             rgbled_7.setColor(0, targetRedIntensity, targetGreenIntensity, targetBlueIntensity);
             rgbled_7.show();
@@ -470,11 +441,11 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
         }
 
         // Rising slope
-        if (blinkSlope.equals("Rising")) {
+        if (blinkSlope > 0) {
           if (getLastTime() - blinkPhase < blinkCycle / blinkCycleRate + brightness * lightsOnDuration / 100) {
-            rgbled_7.setColor(0, round(brightness * targetRedIntensity / 100),
-                                 round(brightness * targetGreenIntensity / 100),
-                                 round(brightness * targetBlueIntensity / 100));
+            rgbled_7.setColor(0, round(blinkSlope * brightness * targetRedIntensity / 100),
+                                 round(blinkSlope * brightness * targetGreenIntensity / 100),
+                                 round(blinkSlope * brightness * targetBlueIntensity / 100));
             rgbled_7.show();
           } else {
             if (brightness < 100) {
@@ -484,56 +455,14 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
         }
 
         // Falling slope
-        if (blinkSlope.equals("Falling")) {
+        if (blinkSlope < 0) {
           if (getLastTime() - blinkPhase < blinkCycle / blinkCycleRate + brightness * lightsOnDuration / 100) {
-            rgbled_7.setColor(0, round((100 - brightness) * targetRedIntensity / 100),
-                                 round((100 - brightness) * targetGreenIntensity / 100),
-                                 round((100 - brightness) * targetBlueIntensity / 100));
+            rgbled_7.setColor(0, round(blinkSlope * (brightness - 100) * targetRedIntensity / 100),
+                                 round(blinkSlope * (brightness - 100) * targetGreenIntensity / 100),
+                                 round(blinkSlope * (brightness - 100) * targetBlueIntensity / 100));
             rgbled_7.show();
           } else {
             if (brightness < 100) {
-              brightness += 1;
-            }
-          }
-        }
-
-        // Rising-Falling slope
-        if (blinkSlope.equals("Rising-Falling")) {
-          if (getLastTime() - blinkPhase < blinkCycle / blinkCycleRate + brightness * lightsOnDuration / 200) {
-            if (brightness < 100) {
-              rgbled_7.setColor(0, round(brightness * targetRedIntensity / 100),
-                                   round(brightness * targetGreenIntensity / 100),
-                                   round(brightness * targetBlueIntensity / 100));
-              rgbled_7.show();
-            } else {
-              rgbled_7.setColor(0, round((200 - brightness) * targetRedIntensity / 100),
-                                   round((200 - brightness) * targetGreenIntensity / 100),
-                                   round((200 - brightness) * targetBlueIntensity / 100));
-              rgbled_7.show();
-            }
-          } else {
-            if (brightness < 200) {
-              brightness += 1;
-            }
-          }
-        }
-
-        // Falling-Rising slope
-        if (blinkSlope.equals("Falling-Rising")) {
-          if (getLastTime() - blinkPhase < blinkCycle / blinkCycleRate + brightness * lightsOnDuration / 200) {
-            if (brightness < 100) {
-              rgbled_7.setColor(0, round((100 - brightness) * targetRedIntensity / 100),
-                                   round((100 - brightness) * targetGreenIntensity / 100),
-                                   round((100 - brightness) * targetBlueIntensity / 100));
-              rgbled_7.show();
-            } else {
-              rgbled_7.setColor(0, round((brightness - 100) * targetRedIntensity / 100),
-                                   round((brightness - 100) * targetGreenIntensity / 100),
-                                   round((brightness - 100) * targetBlueIntensity / 100));
-              rgbled_7.show();
-            }
-          } else {
-            if (brightness < 200) {
               brightness += 1;
             }
           }
@@ -567,20 +496,20 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
     if (doBeep) {
       // Start executing after the given phase
       if (getLastTime() - beepPhase >= 0) {
-        if (beepSlope == "Constant") {
+        if (beepSlope == 0) {
           if (getLastTime() - beepPhase < beepCycle / beepCycleRate + soundDuration) {
             // Play the sound at the current pitch for the given duration
             buzzer.tone(currentPitch, soundDuration * 1000);
           }
         }
 
-        if (beepSlope == "Rising") {
+        if (beepSlope > 0) {
           if(getLastTime() - beepPhase < beepCycle / beepCycleRate + semitone * soundDuration / 12) {
             // Play the sound at the current pitch for the given duration
             buzzer.tone(currentPitch, soundDuration / 12 * 1000);
           } else {
             // Change current pitch to next rising semitone
-            currentPitch = exp(log(targetPitch) + semitone / 12 * log(2));
+            currentPitch = exp(log(targetPitch) + beepSlope * semitone / 12 * log(2));
             
             // Increase semitone by one
             if (semitone < 12) {
@@ -590,13 +519,13 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
 
         }
 
-        if (beepSlope == "Falling") {
+        if (beepSlope < 0) {
           if (getLastTime() - beepPhase < beepCycle / beepCycleRate + semitone * soundDuration / 12) {
             // Play the sound at the current pitch for the given duration
             buzzer.tone(currentPitch, soundDuration / 12 * 1000);
           } else {
             // Change current pitch to next falling semitone
-            currentPitch = exp(log(targetPitch) - semitone / 12 * log(2));
+            currentPitch = exp(log(targetPitch) + beepSlope * semitone / 12 * log(2));
             
             // Increase semitone by one
             if (semitone < 12) {
@@ -604,49 +533,11 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
             }
           }
         }
-
-        if (beepSlope == "Rising-Falling") {
-          if (getLastTime() - beepPhase < beepCycle / beepCycleRate + semitone * soundDuration / 24) {
-            // Play the sound at the current pitch for the given duration
-            buzzer.tone(currentPitch, soundDuration / 24 * 1000);
-          } else {
-            // Change current pitch to next rising semitone
-            if (semitone < 12) {
-              currentPitch = exp(log(targetPitch) + semitone / 12 * log(2));
-            } else { // Change current pitch to next falling semitone
-              currentPitch = exp(log(targetPitch) + (24 - semitone) / 12 * log(2));
-            }
-            
-            // Increase semitone by one
-            if (semitone < 24) {
-              semitone += 1;
-            }
-          }
-        }
-
-        if (beepSlope == "Falling-Rising") {
-          if (getLastTime() - beepPhase < beepCycle / beepCycleRate + semitone * soundDuration / 24) {
-            // Play the sound at the current pitch for the given duration
-            buzzer.tone(currentPitch, soundDuration / 24 * 1000);
-          } else {
-            // Change current pitch to next falling semitone
-            if (semitone < 12) {
-              currentPitch = exp(log(targetPitch) - semitone / 12 * log(2));
-            } else { // Change current pitch to next rising semitone
-              currentPitch = exp(log(targetPitch) - (24 - semitone) / 12 * log(2));
-            }
-            
-            // Increase semitone by one
-            if (semitone < 24) {
-              semitone += 1;
-            }
-          }
-        }
-
+        
         // Play either a random note or silence based on the given probability for the silence duration
         if (getLastTime() - beepPhase > beepCycle / beepCycleRate + soundDuration && 
             getLastTime() - beepPhase < (beepCycle + 1) / beepCycleRate) {
-          PlayRandomNoteWithProbability(beepSlope, beepRandomNoteProbability);
+          PlayRandomNoteWithProbability(beepSlope, beepRandomNoteProbability, beepPitchStandardDeviation);
         }
 
         if (getLastTime() - beepPhase > (beepCycle + 1) / beepCycleRate) {
@@ -672,34 +563,34 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
   motor_10.run(0);
 }
 
-void CheckValidWanderInput(double speed, String slope, double roundness, double turnRate, double cycleStandardDeviation, double speedStandardDeviation, double phase)
+void CheckValidWanderInput(double speed, double slope, double roundness, double turnRate, double cycleStandardDeviation, double speedStandardDeviation, double phase)
 {
-    boolean isValidSpeed = speed >= 25 && speed <= 100;
-    boolean isTurnRatePositive = turnRate > 0;
-    boolean isValidSlope = slope.equals("Constant") || slope.equals("Rising") || slope.equals("Falling");
-    boolean isValidRoundness = roundness >= 0 && roundness <= 1;
-    boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && speedStandardDeviation >= 0;
-    boolean isValidPhase = phase >= 0;
+  boolean isValidSpeed = speed >= 25 && speed <= 100;
+  boolean isTurnRatePositive = turnRate > 0;
+  boolean isValidSlope = slope >= -5 && slope <= 5;
+  boolean isValidRoundness = roundness >= 0 && roundness <= 1;
+  boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && speedStandardDeviation >= 0;
+  boolean isValidPhase = phase >= 0;
 
-    doWander = isValidSpeed && isTurnRatePositive && isValidSlope && isValidRoundness && isValidStandardDeviation && isValidPhase;
+  doWander = isValidSpeed && isTurnRatePositive && isValidSlope && isValidRoundness && isValidStandardDeviation && isValidPhase;
 }
 
-void CheckValidBlinkInput(double temperature, String slope, double lightsOnToOffRatio, double cycleRate, double cycleStandardDeviation, double temperatureStandardDeviation, double phase) 
+void CheckValidBlinkInput(double temperature, double slope, double lightsOnToOffRatio, double cycleRate, double cycleStandardDeviation, double temperatureStandardDeviation, double phase) 
 {
   boolean isValidTemperature = temperature >= 0 && temperature <= 1;
-  boolean isValidSlope = slope.equals("Constant") || slope.equals("Rising") || slope.equals("Falling") || slope.equals("Rising-Falling") || slope.equals("Falling-Rising");
-  boolean isValidLightsOnToOffRatio = lightsOnToOffRatio <= 1 && lightsOnToOffRatio >= 0;
+  boolean isValidSlope = slope >= -5 && slope <= 5;
+  boolean isValidLightsOnToOffRatio = lightsOnToOffRatio <= 1 && lightsOnToOffRatio > 0;
   boolean isCycleRatePositive = cycleRate > 0;
   boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && temperatureStandardDeviation >= 0;
   boolean isValidPhase = phase >= 0;
 
-  doBlink= isValidTemperature && isValidSlope && isValidLightsOnToOffRatio && isCycleRatePositive && isValidStandardDeviation && isValidPhase;
+  doBlink = isValidTemperature && isValidSlope && isValidLightsOnToOffRatio && isCycleRatePositive && isValidStandardDeviation && isValidPhase;
 }
 
-void CheckValidBeepInput(double pitch, String slope, double soundToSilenceRatio, double cycleRate, double cycleStandardDeviation, double pitchStandardDeviation, double phase) 
+void CheckValidBeepInput(double pitch, double slope, double soundToSilenceRatio, double cycleRate, double cycleStandardDeviation, double pitchStandardDeviation, double phase) 
 {
-  boolean isValidPitch = pitch >= 80 && pitch < 3000;
-  boolean isValidSlope = slope.equals("Constant") || slope.equals("Rising") || slope.equals("Falling") || slope.equals("Rising-Falling") || slope.equals("Falling-Rising");
+  boolean isValidPitch = pitch >= 80 && pitch <= 3000;
+  boolean isValidSlope = (slope < 0 && slope >= log(40 / pitch) / log(2)) || (slope > 0 && slope <= log(6000 / pitch) / log(2)) || slope == 0;
   boolean isValidSoundToSilenceRatio = soundToSilenceRatio <= 1 && soundToSilenceRatio >= 0;
   boolean isCycleRatePositive = cycleRate > 0;
   boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && pitchStandardDeviation >= 0;
@@ -735,11 +626,11 @@ void setup()
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
                         // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        100,            "Constant",         0,               0.5,            0.5,                          0,                            0,
-                        // blinkTemperature, blinkSlope,       blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0.5,                 "Constant",       0.9,                     5,          0.2,                         0.4,                               0, 
-                        // beepPitch, beepSlope,        beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        100,            0,           0,               0.5,            0.5,                          0,                            0,
+                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
+                        0.5,                 0,          0.9,                     5,              0.2,                         0.4,                               0, 
+                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
+                        0,            0,         0,                       0,             0,                          0,                          0,                          0);
       }
 
       // Happy Beep
@@ -747,11 +638,11 @@ void setup()
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
                         // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              "",                 0,               0,              0,                            0,                            0,
-                        // blinkTemperature, blinkSlope,       blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   "",               0,                       0,          0,                           0,                                 0, 
-                        // beepPitch, beepSlope,        beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        700,          "Rising",         0.8,                     3,         0.2,                        100,                        0.4,                        0);
+                        0,              0,           0,               0,              0,                            0,                            0,         
+                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
+                        0,                   0,          0,                       0,              0,                           0,                                 0,
+                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
+                        700,          1,         0.8,                     3,             0.2,                        100,                        0.4,                        0);
       }
 
       // Sad Blink & Wander
@@ -759,11 +650,11 @@ void setup()
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
                         // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        30,            "Constant",          1,               0.5,            0.2,                          0,                            0,
-                        // blinkTemperature, blinkSlope,       blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                 "Rising-Falling",   0.5,                     0.1,        0.5,                         0.1,                              0, 
-                        // beepPitch, beepSlope,        beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        30,             0,           1,               0.5,            0.2,                          0,                            0,
+                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
+                        0,                   -1,         0.5,                     0.1,            0.5,                         0.1,                               0, 
+                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
+                        0,            0,         0,                       0,             0,                          0,                          0,                          0);
       }
 
       // Sad Beep
@@ -771,11 +662,11 @@ void setup()
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
                         // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              "",                 0,               0,              0,                            0,                            0,
-                        // blinkTemperature, blinkSlope,       blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   "",               0,                       0,              0,                           0,                                 0, 
-                        // beepPitch, beepSlope,        beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        100,          "Falling",        0.5,                     0.5,       0.2,                        20,                         0.2,                        0);
+                        0,              0,           0,               0,              0,                            0,                            0,         
+                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
+                        0,                   0,          0,                       0,              0,                           0,                                 0,
+                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
+                        100,          -1,        0.5,                     0.5,           0.2,                        20,                         0.2,                        0);
       }
 
       // Angry Blink & Wander
@@ -783,11 +674,11 @@ void setup()
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true, 
                         // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        100,            "Constant",           0,               5,            1,                            0,                            0,     
-                        // blinkTemperature, blinkSlope,       blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        1,                   "Rising",         0.95,                    6,          0.1,                         0,                                 0, 
-                        // beepPitch, beepSlope,        beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        100,            0,           0,               5,            1,                            0,                            0,     
+                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
+                        1,                   1,          0.95,                    6,              0.1,                         0,                                 0, 
+                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
+                        0,            0,         0,                       0,             0,                          0,                          0,                          0);
       }
 
       // Angry Beep
@@ -795,11 +686,11 @@ void setup()
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
                         // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              "",                 0,               0,              0,                            0,                            0,         
-                        // blinkTemperature, blinkSlope,       blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   "",               0,                       0,          0,                           0,                                 0, 
-                        // beepPitch, beepSlope,        beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        900,          "Rising-Falling", 0.9,                    4,         0.2,                        100,                        0.4,                        0);
+                        0,              0,           0,               0,              0,                            0,                            0,         
+                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
+                        0,                   0,          0,                       0,              0,                           0,                                 0,
+                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
+                        900,          1,         0.9,                     4,             0.2,                        100,                        0.4,                        0);
       }
 
       // Afraid Blink & Wander
@@ -807,11 +698,11 @@ void setup()
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
                         // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        40,             "Falling",          0,               8,              0.2,                          10,                           0,         
-                        // blinkTemperature, blinkSlope,       blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0.3,                 "Rising-Falling", 1,                     0.1,        0.5,                         0.05,                              5, 
-                        // beepPitch, beepSlope,        beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            "",               0,                       0,         0,                          0,                          0,                          0);
+                        40,             0,           0,               8,              0.2,                          10,                           0,         
+                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
+                        0.3,                 -1,         1,                       0.1,            0.5,                         0.05,                              5, 
+                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
+                        0,            0,         0,                       0,             0,                          0,                          0,                          0);
       }
 
       // Afraid Beep
@@ -819,11 +710,11 @@ void setup()
         WanderBlinkBeep(// duration, stayInBounds
                         20,          true,
                         // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              "",                 0,               0,              0,                            0,                            0,            
-                        // blinkTemperature, blinkSlope,       blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   "Constant",       1,                       1,          0,                           0,                                 0, 
-                        // beepPitch, beepSlope,        beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        200,          "Falling-Rising", 0.3,                     0.2,       0.2,                        50,                         0.1,                        5);
+                        0,              0,           0,               0,              0,                            0,                            0,            
+                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
+                        0,                   0,          1,                       1,              0,                           0,                                 0, 
+                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
+                        200,          -1,        0.3,                     0.2,           0.2,                        50,                         0.1,                        5);
       
         // Reset the count of times the remote control button has been pressed
         timesButtonPressed = 0;
