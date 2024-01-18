@@ -1,0 +1,23 @@
+wanderSpeed
+	wanderAcceleration
+wanderRoundness
+(wanderTurnToStraightRatio)?
+wanderTurnRate -> wanderCycleRate
+	wanderCycleStandardDeviation
+	wanderSpeedStandardDeviation
+	wanderPhase 
+blinkTemperature
+blinkMode -> blinkSlope
+blinkLightsOnToOffRatio
+blinkTempo -> blinkCycleRate
+	blinkCycleStandardDeviation
+	blinkTemperatureStandardDeviation
+	blinkPhase
+beepPitch 
+beepIntonation -> beepSlope
+beepSoundToSilenceRatio
+beepTempo -> beepCycleRate
+	beepCycleStandardDeviation
+	beepPitchStandardDeviation
+	beepRandomSoundProbability
+	beepPhase
