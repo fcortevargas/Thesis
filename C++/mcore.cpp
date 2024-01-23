@@ -48,6 +48,39 @@ boolean doWander;
 boolean doBeep;
 boolean doBlink;
 
+// General input parameters
+double duration;
+boolean stayInBounds;
+
+// Wander input parameters
+double wanderSpeed;
+double wanderSlope;
+double wanderRoundness;
+double wanderTurnToForwardRatio;
+double wanderCycleRate;
+double wanderCycleStandardDeviation;
+double wanderSpeedStandardDeviation;
+double wanderPhase;
+
+// Blink input parameters
+double blinkTemperature;
+double blinkSlope;
+double blinkLightsOnToOffRatio;
+double blinkCycleRate;
+double blinkCycleStandardDeviation;
+double blinkTemperatureStandardDeviation;
+double blinkPhase;
+
+// Beep input parameters
+double beepPitch;
+double beepSlope;
+double beepSoundToSilenceRatio;
+double beepCycleRate;
+double beepCycleStandardDeviation;
+double beepPitchStandardDeviation;
+double beepRandomSoundProbability;
+double beepPhase;
+
 // Variable to keep track of how many times the button is pressed
 int timesButtonPressed = 0;
 
@@ -599,12 +632,44 @@ void CheckValidBeepInput(double pitch, double slope, double soundToSilenceRatio,
   boolean isValidPitch = pitch >= 80 && pitch <= 3000;
   boolean isValidSlope = (slope < 0 && slope >= log(40 / pitch) / log(2)) || (slope > 0 && slope <= log(6000 / pitch) / log(2)) || slope == 0;
   boolean isValidSoundToSilenceRatio = soundToSilenceRatio <= 1 && soundToSilenceRatio >= 0;
-  boolean isCycleRatePositive = cycleRate > 0;
+  boolean isValidCycleRate = cycleRate > 0 && cycleRate <= 4.5;
   boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && pitchStandardDeviation >= 0;
   boolean isValidRandomSoundProbability = randomSoundProbability <= 1 && randomSoundProbability >= 0;
   boolean isValidPhase = phase >= 0;
 
-  doBeep = isValidPitch && isValidSlope && isValidSoundToSilenceRatio && isCycleRatePositive && isValidStandardDeviation && isValidRandomSoundProbability && isValidPhase;
+  doBeep = isValidPitch && isValidSlope && isValidSoundToSilenceRatio && isValidCycleRate && isValidStandardDeviation && isValidRandomSoundProbability && isValidPhase;
+  
+  if (!doBeep) {
+    DebugConditions(isValidPitch);
+    DebugConditions(isValidSlope);
+    DebugConditions(isValidSoundToSilenceRatio);
+    DebugConditions(isValidCycleRate);
+    DebugConditions(isValidStandardDeviation);
+    DebugConditions(isValidRandomSoundProbability);
+    DebugConditions(isValidPhase);
+  } else {
+    rgbled_7.setColor(0, 255, 255, 255);
+    rgbled_7.show();
+  }
+}
+
+void DebugConditions(boolean condition)
+{
+  if (condition) {
+    rgbled_7.setColor(0, 0, 255, 0);
+    rgbled_7.show();
+    _delay(1);
+    rgbled_7.setColor(0,0,0,0);
+    rgbled_7.show();
+    _delay(1);
+  } else {
+    rgbled_7.setColor(0, 255, 0, 0);
+    rgbled_7.show();
+    _delay(1);
+    rgbled_7.setColor(0,0,0,0);
+    rgbled_7.show();
+    _delay(1);
+  }
 }
 
 void _delay(float seconds) 
@@ -629,157 +694,200 @@ void setup()
     if (ir.keyPressed(9)) {
       timesButtonPressed += 1;
 
-      // Constant wander, blink and beep input parameters
+      // CONSTANT GENERAL INPUT PARAMETERS FOR ALL EMOTIONS
+      duration = 20;
+      stayInBounds = true;
 
-      // Set all the following wander parameters to a constant value for all emotions
-      double wanderSlope = 0;
-      double wanderTurnToForwardRatio = 0.8;
-      double wanderSpeedStandardDeviation = 0;
-      double wanderPhase = 0;
+      // CONSTANT BASE BEHAVIORS INPUT PARAMETERS FOR ALL EMOTIONS
+      wanderSlope = 0;
+      wanderTurnToForwardRatio = 0.8;
+      wanderSpeedStandardDeviation = 0;
+      wanderPhase = 0;
 
-      // Set all the following blink parameters to a constant value for all emotions
-      double blinkLightsOnToOffRatio = 0.85;
-      double blinkPhase = 0;
+      blinkLightsOnToOffRatio = 0.85;
+      blinkPhase = 0;
 
-      // Set all the following beep parameters to a constant value for all emotions
-      double beepPhase = 0;
+      beepCycleStandardDeviation = 0.2;
+      beepPhase = 0;
 
-      // Emotion 1 Blink & Wander
+      // Emotion 1 blink & wander
+      if (timesButtonPressed == 0) {
+        // FINE-TUNED WANDER AND BLINK INPUT PARAMETERS
+        wanderSpeed = 100;
+        wanderRoundness = 1;
+        wanderCycleRate = 0.5;
+        wanderCycleStandardDeviation = 0.5;
+
+        blinkTemperature = 0.5;
+        blinkSlope = 0;
+        blinkCycleRate = 5;
+        blinkTemperatureStandardDeviation = 0.4;
+
+        // RANDOMIZED WANDER AND BLINK INPUT PARAMETERS
+        blinkCycleStandardDeviation = GetRandomNumber(0, 0.5); // random value between 0 and 0.5
+
+        // Run base behaviors
+        WanderBlinkBeep(duration, stayInBounds,
+                        wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                        blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                        0, 0, 0, 0, 0, 0, 0, 0);
+      }
+
+      // Emotion 1 beep
       if (timesButtonPressed == 1) {
-        // Randomized wander and blink input parameters
+        // FINE-TUNED BEEP INPUT PARAMETERS
+        beepPitch = 700;
+        beepSlope = 1;
+        beepCycleRate = 3;
+        beepPitchStandardDeviation = 100;
+        beepRandomSoundProbability = 0.4;
 
-        // Get a random value for the blinkCycleStandardDeviation between 0 and 0.5
-        double blinkCycleStandardDeviation = GetRandomNumber(0, 0.5);
+        // INTERPOLATED BEEP INPUT PARAMETERS
+        beepSoundToSilenceRatio = 0.1431 * beepCycleRate + 0.3496;
+
+        // RANDOMIZED BEEP INPUT PARAMETERS
+        // beepSoundToSilenceRatio = GetRandomNumber(0, 1);
 
         // Run base behaviors
-        WanderBlinkBeep(// duration, stayInBounds
-                        20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        100,            wanderSlope, 1,               wanderTurnToForwardRatio, 0.5,             0.5,                          wanderSpeedStandardDeviation, wanderPhase,
-                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0.5,                 0,          blinkLightsOnToOffRatio, 5,              blinkCycleStandardDeviation, 0.4,                               0, 
-                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            0,         0,                       0,             0,                          0,                          0,                          0);
+        WanderBlinkBeep(duration, stayInBounds,
+                        0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0,
+                        beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
       }
 
-      // Emotion 1 Beep
+      // Emotion 2 blink & wander
+      if (timesButtonPressed == 0) {
+        // FINE-TUNED WANDER AND BLINK INPUT PARAMETERS
+        wanderSpeed = 35;
+        wanderRoundness = 0.5;
+        wanderCycleRate = 0.5;
+        wanderCycleStandardDeviation = 0.2;
+
+        blinkTemperature = 0;
+        blinkSlope = -1;
+        blinkCycleRate = 0.1;
+        blinkTemperatureStandardDeviation = 0.1;
+
+        // RANDOMIZED WANDER AND BLINK INPUT PARAMETERS
+        blinkCycleStandardDeviation = GetRandomNumber(0, 0.5); // random value between 0 and 0.5
+
+        // Run base behaviors
+        WanderBlinkBeep(duration, stayInBounds,
+                        wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                        blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                        0, 0, 0, 0, 0, 0, 0, 0);
+      }
+
+      // Emotion 2 beep
       if (timesButtonPressed == 2) {
-        // Randomized beep input parameters
+        // FINE-TUNED BEEP INPUT PARAMETERS
+        beepPitch = 100;
+        beepSlope = -1;
+        beepCycleRate = 0.5;
+        beepPitchStandardDeviation = 20;
+        beepRandomSoundProbability = 0.2;
 
-        // Get a random value for the beepSoundToSilenceRatio between 0 and 1
-        double beepSoundToSilenceRatio = GetRandomNumber(0, 1);
+        // INTERPOLATED BEEP INPUT PARAMETERS
+        beepSoundToSilenceRatio = 0.1431 * beepCycleRate + 0.3496;
+
+        // RANDOMIZED BEEP INPUT PARAMETERS
+        // beepSoundToSilenceRatio = GetRandomNumber(0, 1);
 
         // Run base behaviors
-        WanderBlinkBeep(// duration, stayInBounds
-                        20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              0,           0,               0,                        0,               0,                            0,                            0,         
-                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   0,          0,                       0,              0,                           0,                                 0,
-                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        700,          1,         beepSoundToSilenceRatio, 3,             0.2,                        100,                        0.4,                        beepPhase);
+        WanderBlinkBeep(duration, stayInBounds,
+                        0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0,
+                        beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
       }
 
-      // Emotion 2 Blink & Wander
+      // Emotion 3 blink & wander
+      if (timesButtonPressed == 0) {
+        // FINE-TUNED WANDER AND BLINK INPUT PARAMETERS
+        wanderSpeed = 100;
+        wanderRoundness = 0;
+        wanderCycleRate = 5;
+        wanderCycleStandardDeviation = 1;
+
+        blinkTemperature = 1;
+        blinkSlope = 1;
+        blinkCycleRate = 6;
+        blinkTemperatureStandardDeviation = 0;
+
+        // RANDOMIZED WANDER AND BLINK INPUT PARAMETERS
+        blinkCycleStandardDeviation = GetRandomNumber(0, 0.5); // random value between 0 and 0.5
+
+        // Run base behaviors
+        WanderBlinkBeep(duration, stayInBounds,
+                        wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                        blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                        0, 0, 0, 0, 0, 0, 0, 0);
+      }
+
+      // Emotion 3 beep
       if (timesButtonPressed == 3) {
-        // Get a random value for the blinkCycleStandardDeviation between 0 and 0.5
-        double blinkCycleStandardDeviation = GetRandomNumber(0, 0.5);
+        // FINE-TUNED BEEP INPUT PARAMETERS
+        beepPitch = 900;
+        beepSlope = 1;
+        beepCycleRate = 4;
+        beepPitchStandardDeviation = 100;
+        beepRandomSoundProbability = 0.4;
+
+        // INTERPOLATED BEEP INPUT PARAMETERS
+        beepSoundToSilenceRatio = 0.1431 * beepCycleRate + 0.3496;
+
+        // RANDOMIZED BEEP INPUT PARAMETERS
+        // beepSoundToSilenceRatio = GetRandomNumber(0, 1);
 
         // Run base behaviors
-        WanderBlinkBeep(// duration, stayInBounds
-                        20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        35,             wanderSlope, 0.5,             wanderTurnToForwardRatio, 0.5,             0.2,                          wanderSpeedStandardDeviation, wanderPhase,
-                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   -1,         blinkLightsOnToOffRatio, 0.1,            blinkCycleStandardDeviation, 0.1,                               0, 
-                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            0,         0,                       0,             0,                          0,                          0,                          0);
+        WanderBlinkBeep(duration, stayInBounds,
+                        0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0,
+                        beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
       }
 
-      // Emotion 2 Beep
+      // Emotion 4 blink & wander
+      if (timesButtonPressed == 0) {
+        // FINE-TUNED WANDER AND BLINK INPUT PARAMETERS
+        wanderSpeed = 40;
+        wanderRoundness = 0;
+        wanderCycleRate = 6;
+        wanderCycleStandardDeviation = 0.1;
+
+        blinkTemperature = 0.3;
+        blinkSlope = -1;
+        blinkCycleRate = 0.1;
+        blinkTemperatureStandardDeviation = 0.05;
+
+        // RANDOMIZED WANDER AND BLINK INPUT PARAMETERS
+        blinkCycleStandardDeviation = GetRandomNumber(0, 0.5); // random value between 0 and 0.5
+
+        // Run base behaviors
+        WanderBlinkBeep(duration, stayInBounds,
+                        wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                        blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                        0, 0, 0, 0, 0, 0, 0, 0);
+      }
+
+      // Emotion 4 beep
       if (timesButtonPressed == 4) {
-        // Randomized beep input parameters
+        // FINE-TUNED BEEP INPUT PARAMETERS
+        beepPitch = 200;
+        beepSlope = -1;
+        beepCycleRate = 0.2;
+        beepPitchStandardDeviation = 50;
+        beepRandomSoundProbability = 0.1;
 
-        // Get a random value for the beepSoundToSilenceRatio between 0 and 1
-        double beepSoundToSilenceRatio = GetRandomNumber(0, 1);
+        // INTERPOLATED BEEP INPUT PARAMETERS
+        beepSoundToSilenceRatio = 0.1431 * beepCycleRate + 0.3496;
 
-        // Run base behaviors
-        WanderBlinkBeep(// duration, stayInBounds
-                        20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              0,           0,               0,                        0,               0,                            0,                            0,         
-                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   0,          0,                       0,              0,                           0,                                 0,
-                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        100,          -1,        beepSoundToSilenceRatio, 0.5,           0.2,                        20,                         0.2,                        beepPhase);
-      }
-
-      // Emotion 3 Blink & Wander
-      if (timesButtonPressed == 5) {
-        // Get a random value for the blinkCycleStandardDeviation between 0 and 0.5
-        double blinkCycleStandardDeviation = GetRandomNumber(0, 0.5);
+        // RANDOMIZED BEEP INPUT PARAMETERS
+        // beepSoundToSilenceRatio = GetRandomNumber(0, 1);
 
         // Run base behaviors
-        WanderBlinkBeep(// duration, stayInBounds
-                        20,          true, 
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        100,            wanderSlope, 0,               wanderTurnToForwardRatio, 5,               1,                            wanderSpeedStandardDeviation, wanderPhase,     
-                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        1,                   1,          blinkLightsOnToOffRatio, 6,              blinkCycleStandardDeviation, 0,                                 0, 
-                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            0,         0,                       0,             0,                          0,                          0,                          0);
-      }
-
-      // Emotion 3 Beep
-      if (timesButtonPressed == 6) {
-        // Randomized beep input parameters
-
-        // Get a random value for the beepSoundToSilenceRatio between 0 and 1
-        double beepSoundToSilenceRatio = GetRandomNumber(0, 1);
-
-        // Run base behaviors
-        WanderBlinkBeep(// duration, stayInBounds
-                        20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              0,           0,               0,                        0,               0,                            0,                            0,         
-                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   0,          0,                       0,              0,                           0,                                 0,
-                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        900,          1,         beepSoundToSilenceRatio, 4,             0.2,                        100,                        0.4,                        beepPhase);
-      }
-
-      // Emotion 4 Blink & Wander
-      if (timesButtonPressed == 7) {
-        // Get a random value for the blinkCycleStandardDeviation between 0 and 0.5
-        double blinkCycleStandardDeviation = GetRandomNumber(0, 0.5);
-
-        // Run base behaviors
-        WanderBlinkBeep(// duration, stayInBounds
-                        20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        40,             wanderSlope, 0,               wanderTurnToForwardRatio, 6,               0.1,                          wanderSpeedStandardDeviation, wanderPhase,         
-                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0.3,                 -1,         blinkLightsOnToOffRatio, 0.1,            blinkCycleStandardDeviation, 0.05,                              0, 
-                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        0,            0,         0,                       0,             0,                          0,                          0,                          0);
-      }
-
-      // Emotion 4 Beep
-      if (timesButtonPressed == 8) {
-        // Randomized beep input parameters
-
-        // Get a random value for the beepSoundToSilenceRatio between 0 and 1
-        double beepSoundToSilenceRatio = GetRandomNumber(0, 1);
-
-        // Run base behaviors
-        WanderBlinkBeep(// duration, stayInBounds
-                        20,          true,
-                        // wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase
-                        0,              0,           0,               0,                        0,               0,                            0,                            0,         
-                        // blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase
-                        0,                   0,          0,                       0,              0,                           0,                                 0, 
-                        // beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase
-                        200,          -1,        beepSoundToSilenceRatio, 0.2,           0.2,                        50,                         0.1,                        beepPhase);
+        WanderBlinkBeep(duration, stayInBounds,
+                        0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0,
+                        beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
       
         // Reset the count of times the remote control button has been pressed
         timesButtonPressed = 0;
