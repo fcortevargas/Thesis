@@ -742,7 +742,7 @@ void setup()
         
         // beepPitchStandardDeviation = GetRandomNumber(20, 100);
 
-        beepRandomSoundProbability = GetRandomNumber(0, 0.5);
+        beepRandomSoundProbability = GetRandomNumber(0, 0.4);
 
         // Run base behaviors
         WanderBlinkBeep(duration, stayInBounds,
@@ -800,7 +800,7 @@ void setup()
         
         // beepPitchStandardDeviation = GetRandomNumber(20, 100);
 
-        beepRandomSoundProbability = GetRandomNumber(0, 0.5);
+        beepRandomSoundProbability = GetRandomNumber(0, 0.4);
 
         // Run base behaviors
         WanderBlinkBeep(duration, stayInBounds,
@@ -858,7 +858,7 @@ void setup()
         
         // beepPitchStandardDeviation = GetRandomNumber(20, 100);
 
-        beepRandomSoundProbability = GetRandomNumber(0, 0.5);
+        beepRandomSoundProbability = GetRandomNumber(0, 0.4);
 
         // Run base behaviors
         WanderBlinkBeep(duration, stayInBounds,
@@ -916,7 +916,7 @@ void setup()
         
         // beepPitchStandardDeviation = GetRandomNumber(20, 100);
 
-        beepRandomSoundProbability = GetRandomNumber(0, 0.5);
+        beepRandomSoundProbability = GetRandomNumber(0, 0.4);
 
         // Run base behaviors
         WanderBlinkBeep(duration, stayInBounds,
