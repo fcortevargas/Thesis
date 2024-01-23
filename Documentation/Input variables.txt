@@ -3,21 +3,21 @@ wanderSpeed
 wanderRoundness 
 	wanderTurnToForwardRatio
 wanderCycleRate
-wanderCycleStandardDeviation
+	*wanderCycleStandardDeviation
 	wanderSpeedStandardDeviation
 	wanderPhase 
 blinkTemperature
-blinkSlope
+*blinkSlope
 	blinkLightsOnToOffRatio
 blinkCycleRate
 	blinkCycleStandardDeviation
-blinkTemperatureStandardDeviation
+	*blinkTemperatureStandardDeviation
 	blinkPhase
 beepPitch 
-beepSlope
-beepSoundToSilenceRatio
+*beepSlope
+	*beepSoundToSilenceRatio
 beepCycleRate
 	beepCycleStandardDeviation
-beepPitchStandardDeviation
-beepRandomSoundProbability
+	*beepPitchStandardDeviation
+	beepRandomSoundProbability
 	beepPhase

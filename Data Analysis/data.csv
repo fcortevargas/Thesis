@@ -1,5 +1,5 @@
-﻿,wanderSpeed,wanderRoundness,wanderCycleRate,wanderCycleStandardDeviation,blinkTemperature,blinkSlope,blinkCycleRate,blinkTemperatureStandardDeviation,beepPitch,beepSlope,beepSoundToSilenceRatio,beepCycleRate,beepPitchStandardDeviation,beepRandomSoundProbability
-Emotion 1,100,1,0.5,0.5,0.5,0,5,0.4,700,1,0.8,3,100,0.4
-Emotion 2,35,0.5,0.5,0.2,0,-1,0.1,0.1,100,-1,0.5,0.5,20,0.2
-Emotion 3,100,0,5,1,1,1,6,0,900,1,0.9,4,100,0.4
-Emotion 4,40,0,6,0.1,0.3,-1,0.1,0.05,200,-1,0.3,0.2,50,0.1
+﻿,wanderSpeed,wanderRoundness,wanderCycleRate,blinkTemperature,blinkSlope,blinkCycleRate,beepPitch,beepSlope,beepCycleRate
+Emotion 1,100,1,0.5,0.7,0,5,700,1,3
+Emotion 2,35,0.5,0.5,0,-1,0.1,100,-1,0.5
+Emotion 3,100,0,5,1,1,6,900,1,4
+Emotion 4,40,0,6,0.3,-1,0.1,200,-1,0.2
