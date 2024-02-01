@@ -1,48 +1,48 @@
-#include <Arduino.h>
-#include <MeMCore.h>
-#include <SoftwareSerial.h>
-#include <Wire.h>
-#include <stdlib.h>
-#include <math.h>
+#include <Arduino.h> // Core Arduino library for basic functions and macros
+#include <MeMCore.h> // Library for Makeblock electronic modules like motors and sensors
+#include <SoftwareSerial.h> // Library for serial communication on digital pins
+#include <Wire.h> // Library for I2C communication
+#include <stdlib.h> // Standard library for general operations like random numbers
+#include <math.h> // Math library for advanced mathematical operations
 
-// Timer control variables
+// Timer control variables to track the current and last time measurements
 double currentTime = 0;
 double lastTime = 0;
 
-// Arduino components
+// Initialize an RGB LED module connected to port 7 on the main board
 MeRGBLed rgbled_7(7, 2);
 
-// Blink control variables
-double lightsOnDuration;
-double lightsOffDuration;
-double targetRedIntensity;
-double targetGreenIntensity;
-double targetBlueIntensity;
-int brightness;
-int blinkCycle;
+// Variables for controlling the blinking behavior of the LED
+double lightsOnDuration; // How long the lights stay on during a cycle
+double lightsOffDuration; // How long the lights stay off during a cycle
+double targetRedIntensity; // Target intensity for the red component
+double targetGreenIntensity; // Target intensity for the green component
+double targetBlueIntensity; // Target intensity for the blue component
+int brightness; // Current brightness level
+int blinkCycle; // Counter for the number of blink cycles
 
-// Boolean to determine if input is valid
+// Boolean flag to check if the input parameters for blinking are valid
 boolean doBlink;
 
-// Example general input parameters
-double duration = 10;
+// General input parameters for controlling the overall behavior duration
+double duration = 10; // Duration for the blink behavior
 
-// Example blink input parameters
-double blinkTemperature = 0.9;
-double blinkSlope = 1;
-double blinkLightsOnToOffRatio = 0.9;
-double blinkCycleRate = 2;
-double blinkCycleStandardDeviation = 0.5;
-double blinkTemperatureStandardDeviation = 0.1;
-double blinkPhase = 0;
+// Input parameters specifically for the blinking behavior
+double blinkTemperature = 0.9; // Determines the color temperature for the LED
+double blinkSlope = 1; // Determines how the intensity changes over time
+double blinkLightsOnToOffRatio = 0.9; // Ratio of on-time to off-time
+double blinkCycleRate = 2; // How many cycles per second
+double blinkCycleStandardDeviation = 0.5; // Variability in the cycle rate
+double blinkTemperatureStandardDeviation = 0.1; // Variability in the color temperature
+double blinkPhase = 0; // Initial phase delay before starting to blink
 
-// Built-in method to get current time
+// Function to calculate elapsed time since the last reset
 double getLastTime() 
 { 
   return currentTime = millis() / 1000.0 - lastTime; 
 }
 
-// Helper method to generate a random standard gaussian number
+// Generates a Gaussian-distributed random number based on standard deviation
 double GenerateGaussian(double standardDeviation) 
 {
     double u1 = rand() / (RAND_MAX + 1.0);
@@ -51,25 +51,25 @@ double GenerateGaussian(double standardDeviation)
     return z0 * standardDeviation;
 }
 
+// Generates a random number within a specified range
 double GetRandomNumber(double min, double max)
 {
-    double randomNumber = (double)rand() / RAND_MAX; // Generate a random value between 0 and 1
-    return (randomNumber * (max - min)) + min; // Scale and shift to the specified range
+    double randomNumber = (double)rand() / RAND_MAX;
+    return (randomNumber * (max - min)) + min;
 }
 
+// Caps a number to be within a specified range
 void CapNumber(double* number, double lowerLimit, double upperLimit)
 {
-    // Cap number to lower limit
     if (*number < lowerLimit) {
         *number = lowerLimit;
     }
-
-    // Cap number to upper limit
     if (*number > upperLimit) {
         *number = upperLimit;
     }
 }
 
+// Checks if the input parameters for the blinking behavior are within valid ranges
 void CheckValidBlinkInput(double temperature, double slope, double lightsOnToOffRatio, double cycleRate, double cycleStandardDeviation, double temperatureStandardDeviation, double phase) 
 {
   boolean isValidTemperature = temperature >= 0 && temperature <= 1;
@@ -79,170 +79,161 @@ void CheckValidBlinkInput(double temperature, double slope, double lightsOnToOff
   boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && temperatureStandardDeviation >= 0;
   boolean isValidPhase = phase >= 0;
 
+  // If all conditions are met, the input is considered valid
   doBlink = isValidTemperature && isValidSlope && isValidLightsOnToOffRatio && isCycleRatePositive && isValidStandardDeviation && isValidPhase;
 }
 
-// Helper method to set the lights on and off durations for the blink base behavior
+// Sets the durations for the lights being on and off based on the input parameters
 void SetBlinkDurations(double lightsOnToOffRatio, double cycleRate, double cycleStandardDeviation)
 {
-  // Set lights off duration based on input cycle rate
   lightsOffDuration = (1 - lightsOnToOffRatio) / cycleRate;
-
-  // Add random normal variation to the base lights off duration
   lightsOffDuration += GenerateGaussian(cycleStandardDeviation);
-
-  // Cap the lights off duration to be between zero and the inverse of the cycle rate in seconds
   CapNumber(&lightsOffDuration, 0, 1 / cycleRate);
-
-  // Set lights on duration
   lightsOnDuration = 1 / cycleRate - lightsOffDuration;
 }
 
-// Helper method to set the target red, blue and green intensity for the blink base behavior
+// Determines the target intensities for the RGB components of the LED based on temperature
 void SetTargetIntensities(double temperature, double temperatureStandardDeviation)
 {
-  // Add random normal variation to the input blink temperature to get the target temperature
   double targetTemperature = temperature + GenerateGaussian(temperatureStandardDeviation);
-
-  // Cap target temperature to be between 0 and 1
   CapNumber(&targetTemperature, 0, 1);
 
-  // If target temperature is neutral, choose a greenish yellow.
+  // Adjust the RGB intensities based on the calculated target temperature
   if (targetTemperature == 0.5) {
     targetRedIntensity = 200;
     targetGreenIntensity = 255;
     targetBlueIntensity = 0;
-  }
-
-  // If target temperature is higher than 0.5, choose warm colors
-  if (targetTemperature > 0.5) {
+  } else if (targetTemperature > 0.5) {
     targetRedIntensity = round(110 * targetTemperature + 145);
     targetGreenIntensity = round(-510 * targetTemperature + 510);
     targetBlueIntensity = 0;
-  }
-
-  // If target temperature is lower than 0.5, choose cool colors
-  if (targetTemperature < 0.5) {
+  } else if (targetTemperature < 0.5) {
     targetRedIntensity = round(100 * targetTemperature);
     targetGreenIntensity = round(510 * targetTemperature);
     targetBlueIntensity = round(-510 * targetTemperature + 255);
   }
 }
 
-// Method to execute robot's base behaviors wander, blink and beep
+// Method to execute the blink base behavior
 void Blink(double duration,
            double blinkTemperature, double blinkSlope, double blinkLightsOnToOffRatio, double blinkCycleRate, double blinkCycleStandardDeviation, double blinkTemperatureStandardDeviation, double blinkPhase) 
 {
   // INPUT CHECKS AND VARIABLE INITIALIZATION
 
-  // Check if blink input is valid
+  // Validates the input parameters to ensure they are within acceptable ranges for the blink behavior.
   CheckValidBlinkInput(blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase);
 
-  // If blink input is valid, initialize blink variables
+  // Proceeds only if the input parameters are validated successfully.
   if (doBlink) {
-    // Set the target red, green and blue light intensities based on given input
+    // Sets the color intensities for the RGB LED based on the calculated temperature, including randomness.
     SetTargetIntensities(blinkTemperature, blinkTemperatureStandardDeviation);
 
-    // Set lights on and off durations based on given input
+    // Determines the durations for which the LED will stay on and off during each blink cycle, including randomness.
     SetBlinkDurations(blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation);
 
-    // Variable used to control the blink cycles
+    // Initializes the counter that keeps track of the number of completed blink cycles.
     blinkCycle = 0;
 
-    // Variable used to compute the brightness of the light 
+    // Initializes the brightness adjustment factor; used when blinkSlope != 0 to vary intensity.
     brightness = 1;
   }
 
   // MAIN LOOP
 
-  // Initialize timer
+  // Resets the timer to keep track of the blink behavior's duration.
   lastTime = millis() / 1000.0;
 
-  // Loop during given duration 
+  // Continues blinking for the specified duration.
   while (!(getLastTime() > duration)) {
-    _loop();
+    // Placeholder for tasks that need continuous execution within the loop.
 
-    // If valid blink input is given
+    // Checks again if blink behavior should continue based on the doBlink flag.
     if (doBlink) {
-      // Start executing after the given phase
+      // Delays the start of blinking until after the specified phase delay.
       if (getLastTime() - blinkPhase >= 0) {
-        // Turn lights on for given duration
-
-        // Constant slope
+        // Handles constant intensity blinking without any slope for intensity change.
         if (blinkSlope == 0) {
+          // Checks if it's time to turn the lights on within the current blink cycle.
           if (getLastTime() - blinkPhase < blinkCycle / blinkCycleRate + lightsOnDuration) {
+            // Sets the LED color using the target intensity values.
             rgbled_7.setColor(0, targetRedIntensity, targetGreenIntensity, targetBlueIntensity);
             rgbled_7.show();
           }
         }
-
-        // Rising slope
-        if (blinkSlope > 0) {
+        // Handles increasing intensity blinking when blinkSlope is positive.
+        else if (blinkSlope > 0) {
+          // Gradually increases brightness until it reaches the maximum value.
           if (getLastTime() - blinkPhase < blinkCycle / blinkCycleRate + brightness * lightsOnDuration / 100) {
+            // Adjusts the LED color intensity based on the current brightness.
             rgbled_7.setColor(0, round(blinkSlope * brightness * targetRedIntensity / 100),
                                  round(blinkSlope * brightness * targetGreenIntensity / 100),
                                  round(blinkSlope * brightness * targetBlueIntensity / 100));
             rgbled_7.show();
           } else {
+            // Increases the brightness for the next iteration, if it has not reached the maximum.
             if (brightness < 100) {
               brightness += 1;
             }
           }
         }
-
-        // Falling slope
-        if (blinkSlope < 0) {
+        // Handles decreasing intensity blinking when blinkSlope is negative.
+        else if (blinkSlope < 0) {
+          // Gradually decreases brightness until it reaches the minimum value.
           if (getLastTime() - blinkPhase < blinkCycle / blinkCycleRate + brightness * lightsOnDuration / 100) {
+            // Adjusts the LED color intensity based on the current brightness.
             rgbled_7.setColor(0, round(blinkSlope * (brightness - 100) * targetRedIntensity / 100),
                                  round(blinkSlope * (brightness - 100) * targetGreenIntensity / 100),
                                  round(blinkSlope * (brightness - 100) * targetBlueIntensity / 100));
             rgbled_7.show();
           } else {
+            // Increases the brightness for the next iteration, if it has not reached the maximum.
             if (brightness < 100) {
               brightness += 1;
             }
           }
         }
 
-        // Turn lights off for given duration
+        // Turns the lights off after the on-duration within the current cycle.
         if (getLastTime() - blinkPhase > blinkCycle / blinkCycleRate + lightsOnDuration && 
             getLastTime() - blinkPhase < (blinkCycle + 1) / blinkCycleRate) {
           rgbled_7.setColor(0, 0, 0, 0);
           rgbled_7.show();
         }
 
-        // If blink cycle has finished
+        // Prepares for the next blink cycle once the current cycle completes.
         if (getLastTime() - blinkPhase > (blinkCycle + 1) / blinkCycleRate) {
-          // Increase count of cycles by one
+          // Increments the blink cycle counter to track the number of completed cycles.
           blinkCycle += 1;
 
-          // Reset to one
+          // Resets the brightness to its initial value for the next cycle.
           brightness = 1;
 
-          // Change target red, green and blue light intensities
+          // Re-calculates the target color intensities for the next cycle to include variability.
           SetTargetIntensities(blinkTemperature, blinkTemperatureStandardDeviation);
 
-          // Change lights on and off durations
+          // Re-calculates the durations for lights on and off for the next cycle to include variability.
           SetBlinkDurations(blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation);
         }
       }
     }
   }
 
+  // Turns off the LED at the end of the blinking behavior to ensure it does not stay on.
   rgbled_7.setColor(0, 0, 0, 0);
   rgbled_7.show();
 }
 
 void setup() 
 {
-  rgbled_7.fillPixelsBak(0, 2, 1);
+  // Initial setup for the RGB LED.
+  rgbled_7.fillPixelsBak(0, 2, 1); // Pre-configure the LED with a base color or pattern.
+  randomSeed(0); // Initialize the random number generator seed.
 
-  // Initialize random seed
-  randomSeed(0);
-
+  // Start the blinking behavior with the specified parameters.
   Blink(duration, blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase);
 }
 
+// Placeholder loop function, required for Arduino structure but not used
 void _loop() 
 {
   
@@ -250,5 +241,5 @@ void _loop()
 
 void loop() 
 {
-  _loop();
+  _loop(); // Invoke the placeholder loop function within the main loop.
 }
