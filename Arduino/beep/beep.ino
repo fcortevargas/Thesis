@@ -1,149 +1,133 @@
-#include <Arduino.h>
-#include <MeMCore.h>
-#include <SoftwareSerial.h>
-#include <Wire.h>
-#include <stdlib.h>
-#include <math.h>
+#include <Arduino.h> // Core Arduino library for basic input/output functions, types, and constants.
+#include <MeMCore.h> // Library for Makeblock electronic modules, including the buzzer.
+#include <SoftwareSerial.h> // Library for serial communication on digital pins.
+#include <Wire.h> // Library for I2C communication.
+#include <stdlib.h> // Standard library for general utility functions.
+#include <math.h> // Library for mathematical functions.
 
-// Timer control variables
-double currentTime = 0;
-double lastTime = 0;
+// Timer control variables to measure elapsed time.
+double currentTime = 0; // Current time in seconds since the start.
+double lastTime = 0; // Time at the last significant event to calculate elapsed time.
 
-// Arduino components
-MeBuzzer buzzer;
+// Arduino component for sound generation.
+MeBuzzer buzzer; // Buzzer object for emitting sounds.
 
-// Beep control variables
-double soundDuration;
-double silenceDuration;
-double targetPitch;
-double currentPitch;
-double semitone;
-int beepCycle;
+// Beep control variables for managing beep pattern.
+double soundDuration; // Duration of the sound in each beep cycle.
+double silenceDuration; // Duration of silence in each beep cycle.
+double targetPitch; // Desired pitch of the beep in Hertz.
+double currentPitch; // Current pitch of the beep in Hertz, used during execution.
+double semitone; // Incremental change in pitch between beeps, related to musical semitones.
+int beepCycle; // Counter for the number of completed beep cycles.
 
-// Boolean to determine if input is valid
+// Flag to determine if the beep input parameters are valid.
 boolean doBeep;
 
-// General input parameters
-double duration = 10;
+// General input parameter for the behavior's duration.
+double duration = 10; // Duration for the beep behavior in seconds.
 
-// Beep input parameters
-double beepPitch = 400;
-double beepSlope = 1;
-double beepSoundToSilenceRatio = 0.9;
-double beepCycleRate = 2;
-double beepCycleStandardDeviation = 0.5;
-double beepPitchStandardDeviation = 100;
-double beepRandomSoundProbability = 0.3;
-double beepPhase = 0;
+// Specific input parameters for beep behavior customization.
+double beepPitch = 400; // Base pitch of the beep in Hertz.
+double beepSlope = 1; // Determines how the pitch changes over time.
+double beepSoundToSilenceRatio = 0.9; // Ratio of sound duration to silence duration in each cycle.
+double beepCycleRate = 2; // Number of beep cycles per second.
+double beepCycleStandardDeviation = 0.5; // Variability in the cycle rate to introduce randomness.
+double beepPitchStandardDeviation = 100; // Variability in the beep pitch to introduce randomness.
+double beepRandomSoundProbability = 0.3; // Probability of playing a random sound instead of the target pitch.
+double beepPhase = 0; // Initial phase delay before starting the beep behavior.
 
-// Built-in method to get current time
+// Function to calculate elapsed time since the program started in seconds.
 double getLastTime() 
 { 
   return currentTime = millis() / 1000.0 - lastTime; 
 }
 
+// Custom delay function to pause execution for a specified number of seconds.
 void _delay(double seconds) 
 {
-  long endTime = millis() + seconds * 1000;
-  while (millis() < endTime) _loop();
+  long endTime = millis() + seconds * 1000; // Calculate end time in milliseconds.
+  while (millis() < endTime) _loop(); // Wait until the end time is reached.
 }
 
-// Helper method to generate a random standard gaussian number
+// Generates a Gaussian-distributed random number based on standard deviation.
 double GenerateGaussian(double standardDeviation) 
 {
-    double u1 = rand() / (RAND_MAX + 1.0);
-    double u2 = rand() / (RAND_MAX + 1.0);
-    double z0 = sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
+    double u1 = rand() / (RAND_MAX + 1.0); // Generate uniform random number u1.
+    double u2 = rand() / (RAND_MAX + 1.0); // Generate uniform random number u2.
+    double z0 = sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2); // Box-Muller transform for Gaussian distribution.
     return z0 * standardDeviation;
 }
 
+// Generates a random number within the specified range [min, max].
 double GetRandomNumber(double min, double max)
 {
-    double randomNumber = (double)rand() / RAND_MAX; // Generate a random value between 0 and 1
-    return (randomNumber * (max - min)) + min; // Scale and shift to the specified range
+    double randomNumber = (double)rand() / RAND_MAX; // Generate a uniform random number between 0 and 1.
+    return (randomNumber * (max - min)) + min; // Scale and shift the number to the specified range.
 }
 
+// Caps a number to be within the specified lower and upper limits.
 void CapNumber(double* number, double lowerLimit, double upperLimit)
 {
-    // Cap number to lower limit
     if (*number < lowerLimit) {
-        *number = lowerLimit;
+        *number = lowerLimit; // Set to lower limit if below it.
     }
-
-    // Cap number to upper limit
     if (*number > upperLimit) {
-        *number = upperLimit;
+        *number = upperLimit; // Set to upper limit if above it.
     }
 }
 
+// Validates the input parameters for the beep behavior.
 void CheckValidBeepInput(double pitch, double slope, double soundToSilenceRatio, double cycleRate, double cycleStandardDeviation, double pitchStandardDeviation, double randomSoundProbability, double phase) 
 {
-  boolean isValidPitch = pitch >= 80 && pitch <= 3000;
-  boolean isValidSlope = (slope < 0 && slope >= log(40 / pitch) / log(2)) || (slope > 0 && slope <= log(6000 / pitch) / log(2)) || slope == 0;
-  boolean isValidSoundToSilenceRatio = soundToSilenceRatio <= 1 && soundToSilenceRatio >= 0;
-  boolean isCycleRatePositive = cycleRate > 0;
-  boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && pitchStandardDeviation >= 0;
-  boolean isValidRandomSoundProbability = randomSoundProbability <= 1 && randomSoundProbability >= 0;
-  boolean isValidPhase = phase >= 0;
+  // Check each parameter against its valid range.
+  boolean isValidPitch = pitch >= 80 && pitch <= 3000; // Valid pitch range.
+  boolean isValidSlope = (slope < 0 && slope >= log(40 / pitch) / log(2)) || (slope > 0 && slope <= log(6000 / pitch) / log(2)) || slope == 0; // Valid slope conditions.
+  boolean isValidSoundToSilenceRatio = soundToSilenceRatio <= 1 && soundToSilenceRatio >= 0; // Valid ratio range.
+  boolean isCycleRatePositive = cycleRate > 0; // Cycle rate must be positive.
+  boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && pitchStandardDeviation >= 0; // Standard deviations must be non-negative.
+  boolean isValidRandomSoundProbability = randomSoundProbability <= 1 && randomSoundProbability >= 0; // Valid probability range.
+  boolean isValidPhase = phase >= 0; // Phase must be non-negative.
 
+  // If all conditions are met, the input is considered valid.
   doBeep = isValidPitch && isValidSlope && isValidSoundToSilenceRatio && isCycleRatePositive && isValidStandardDeviation && isValidRandomSoundProbability && isValidPhase;
 }
 
-// Helper method to set the sound and silence durations for the blink base behavior
+// Sets the durations for sound and silence based on the ratio and cycle rate.
 void SetBeepDurations(double soundToSilenceRatio, double cycleRate, double cycleStandardDeviation)
 {
-  // Set silence duration based on input cycle rate
-  silenceDuration = (1 - soundToSilenceRatio) / cycleRate;
+  silenceDuration = (1 - soundToSilenceRatio) / cycleRate; // Calculate base silence duration.
+  silenceDuration += GenerateGaussian(cycleStandardDeviation); // Add Gaussian randomness.
+  CapNumber(&silenceDuration, 0, 1 / cycleRate); // Ensure the duration is within valid bounds.
 
-  // Add random normal variation to the base lights off duration
-  silenceDuration += GenerateGaussian(cycleStandardDeviation);
-
-  // Cap the silence duration to be between zero and the inverse of the cycle rate in seconds
-  CapNumber(&silenceDuration, 0, 1 / cycleRate);
-
-  // Set sound duration
-  soundDuration = 1 / cycleRate - silenceDuration;
+  soundDuration = 1 / cycleRate - silenceDuration; // Calculate sound duration based on the remaining time.
 }
 
-// Helper method to set the target pitch for the beep base behavior
+// Sets the target pitch for the beep, including randomness.
 void SetTargetPitch(double pitch, double pitchStandardDeviation)
 {
-  // Add random normal variation to the input beep pitch to get the target pitch
-  targetPitch = pitch + GenerateGaussian(pitchStandardDeviation);
+  targetPitch = pitch + GenerateGaussian(pitchStandardDeviation); // Add randomness to the pitch.
+  CapNumber(&targetPitch, 80, 3000); // Ensure pitch is within a valid range.
 
-  // Cap target pitch between 80 Hz and 3000 Hz
-  CapNumber(&targetPitch, 80, 3000);
-
-  // Initialize current pitch to target pitch
-  currentPitch = targetPitch;
+  currentPitch = targetPitch; // Initialize current pitch to target pitch for the start of behavior.
 }
 
-// Helper function used to play a random sound based on a given probability
+// Plays a sound or silence based on a given probability.
 void PlayRandomSoundWithProbability(double slope, double randomSoundProbability, double pitchStandardDeviation)
 {
-  // Generate a random uniformly distributed number between 0 and 1
-  double randomNumber = GetRandomNumber(0, 1);
+  double randomNumber = GetRandomNumber(0, 1); // Generate a random number to compare against probability.
 
-  // Initialize variables for the random pitch and semitone
-  double randomPitch;
-  int randomSemitone;
-
+  double randomPitch; // Variable for the pitch of the random sound.
   if (slope == 0) {
-    // Add random normal variation to the target beep pitch
-    randomPitch = targetPitch + GenerateGaussian(pitchStandardDeviation);
+    randomPitch = targetPitch + GenerateGaussian(pitchStandardDeviation); // Generate random pitch variation.
   } else {
-    // Generate a random semitone between 1 and 12
-    randomSemitone = (int)GetRandomNumber(1, 12);
-
-    // Get pitch of random semitone of the target pitch
-    randomPitch = exp(log(targetPitch) + slope * randomSemitone / 12 * log(2));
+    int randomSemitone = (int)GetRandomNumber(1, 12); // Random semitone for pitch variation.
+    randomPitch = exp(log(targetPitch) + slope * randomSemitone / 12 * log(2)); // Calculate pitch based on semitone change.
   }
 
-  // Compare random number with noiseProbability
   if (randomNumber < randomSoundProbability) {
-    buzzer.tone(randomPitch, silenceDuration * 1000); // Play note for given duration if within probability
+    buzzer.tone(randomPitch, silenceDuration * 1000); // Play the random sound if within probability.
   } else {
-    _delay(double(silenceDuration)); // Else play silence
+    _delay(silenceDuration); // Otherwise, maintain silence for the duration.
   }
 }
 
@@ -183,6 +167,7 @@ void Beep(double duration,
     if (doBeep) {
       // Start executing after the given phase
       if (getLastTime() - beepPhase >= 0) {
+        // Check if the beep slope is zero (constant pitch)
         if (beepSlope == 0) {
           if (getLastTime() - beepPhase < beepCycle / beepCycleRate + soundDuration) {
             // Play the sound at the current pitch for the given duration
@@ -190,12 +175,13 @@ void Beep(double duration,
           }
         }
 
+        // Check if the beep slope is positive (rising pitch)
         if (beepSlope > 0) {
           if(getLastTime() - beepPhase < beepCycle / beepCycleRate + semitone * soundDuration / 12) {
             // Play the sound at the current pitch for the given duration
             buzzer.tone(currentPitch, soundDuration / 12 * 1000);
           } else {
-            // Change current pitch to next rising semitone
+            // Change current pitch to the next rising semitone
             currentPitch = exp(log(targetPitch) + beepSlope * semitone / 12 * log(2));
             
             // Increase semitone by one
@@ -206,12 +192,13 @@ void Beep(double duration,
 
         }
 
+        // Check if the beep slope is negative (falling pitch)
         if (beepSlope < 0) {
           if (getLastTime() - beepPhase < beepCycle / beepCycleRate + semitone * soundDuration / 12) {
             // Play the sound at the current pitch for the given duration
             buzzer.tone(currentPitch, soundDuration / 12 * 1000);
           } else {
-            // Change current pitch to next falling semitone
+            // Change current pitch to the next falling semitone
             currentPitch = exp(log(targetPitch) + beepSlope * semitone / 12 * log(2));
             
             // Increase semitone by one
@@ -227,14 +214,15 @@ void Beep(double duration,
           PlayRandomSoundWithProbability(beepSlope, beepRandomSoundProbability, beepPitchStandardDeviation);
         }
 
+        // Check if the beep cycle has finished
         if (getLastTime() - beepPhase > (beepCycle + 1) / beepCycleRate) {
-          // Increase count of cycles by one
+          // Increase the count of cycles by one
           beepCycle += 1;
 
-          // Reset to one
+          // Reset semitone to one
           semitone = 1;
 
-          // Change  the target pitch
+          // Change the target pitch
           SetTargetPitch(beepPitch, beepPitchStandardDeviation);
 
           // Change sound and silence durations
@@ -245,20 +233,23 @@ void Beep(double duration,
   }
 }
 
+// Setup function to initialize the robot and start the wander behavior
 void setup() 
 {
-  // Initialize random seed
-  randomSeed(0);
+  randomSeed(0); // Initialize the random number generator seed.
 
+  // Start the beeping behavior with the specified parameters.
   Beep(duration, beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
 }
 
+// Placeholder loop function, required for Arduino structure but not used
 void _loop() 
 {
-
+  
 }
 
+// Main loop function, continuously called by Arduino framework
 void loop() 
 {
-  _loop();
+  _loop(); // Call the placeholder loop function
 }
