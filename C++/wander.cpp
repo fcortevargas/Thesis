@@ -33,7 +33,7 @@ boolean stayInBounds = true; // Flag to stay within a bounded area
 // Specific input parameters for configuring the wander behavior
 double wanderSpeed = 100; // Base speed for wandering
 double wanderSlope = 0; // Slope for changing speed dynamically
-double wanderRoundness = 1; // Factor for adjusting the sharpness of turns
+double wanderRoundness = 0.5; // Factor for adjusting the sharpness of turns
 double wanderTurnToForwardRatio = 0.9; // Ratio of turn duration to forward duration within a cycle
 double wanderCycleRate = 2; // Number of cycles per second
 double wanderCycleStandardDeviation = 0.5; // Variability in the cycle rate
@@ -193,14 +193,16 @@ void Wander(double duration, boolean stayInBounds,
           int sensorReading = linefollower_2.readSensors();
 
           // Executes avoidance maneuver if a black line is detected by the right sensor.
-          if ((sensorReading & 1) == 1) { // Condition checks if the first bit is set, indicating the right sensor detects a line.
+          if ((0 ? (1 == 0 ? sensorReading == 0 : (sensorReading & 1) == 1)
+                 : (1 == 0 ? sensorReading == 3 : (sensorReading & 1) == 0))) { // Condition checks if the first bit is set, indicating the right sensor detects a line.
               move(3, targetForwardSpeed / 100.0 * 255); // Turns left to avoid crossing the line.
               _delay(lineTurnDuration); // Waits for the duration of the turn.
               move(3, 0); // Stops the turn.
           }
 
           // Executes avoidance maneuver if a black line is detected by the left sensor.
-          if ((sensorReading & 2) == 2) { // Condition checks if the second bit is set, indicating the left sensor detects a line.
+          if ((0 ? (2 == 0 ? sensorReading == 0 : (sensorReading & 2) == 2)
+                 : (2 == 0 ? sensorReading == 3 : (sensorReading & 2) == 0))) { // Condition checks if the second bit is set, indicating the left sensor detects a line.
               move(4, targetForwardSpeed / 100.0 * 255); // Turns right to avoid crossing the line.
               _delay(lineTurnDuration); // Waits for the duration of the turn.
               move(4, 0); // Stops the turn.
@@ -264,21 +266,23 @@ void Wander(double duration, boolean stayInBounds,
   motor_10.run(0);
 }
 
-
+// Setup function to initialize the robot and start the wander behavior
 void setup() 
 {
-  // Initialize random seed
-  randomSeed(0);
+  randomSeed(0); // Initialize the random number generator seed.
 
-  Wander(duration, stayInBounds, wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase);
+  // Start the wandering behavior with the specified parameters.
+  Wander(duration, stayInBounds, wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase); // Start wandering
 }
 
+// Placeholder loop function, required for Arduino structure but not used
 void _loop() 
 {
   
 }
 
+// Main loop function, continuously called by Arduino framework
 void loop() 
 {
-  _loop();
+  _loop(); // Call the placeholder loop function
 }
