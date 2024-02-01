@@ -1,63 +1,66 @@
-#include <Arduino.h>
-#include <MeMCore.h>
-#include <SoftwareSerial.h>
-#include <Wire.h>
-#include <stdlib.h>
-#include <math.h>
+#include <Arduino.h> // Include the main Arduino library for basic functions and macros
+#include <MeMCore.h> // Include the Makeblock library for controlling Makeblock components
+#include <SoftwareSerial.h> // Include the library for serial communication on digital pins
+#include <Wire.h> // Include the library for I2C communication
+#include <stdlib.h> // Include standard library for general purpose functions
+#include <math.h> // Include math library for mathematical operations
 
-// Timer control variables
-double currentTime = 0;
-double lastTime = 0;
+// Timer control variables for managing time-based actions
+double currentTime = 0; // Stores the current time in seconds
+double lastTime = 0; // Stores the last time an action was taken in seconds
 
-// Arduino components
-MeLineFollower linefollower_2(2);
-MeDCMotor motor_9(9);
-MeDCMotor motor_10(10);
+// Initialize components attached to the robot
+MeLineFollower linefollower_2(2); // Line follower module on port 2
+MeDCMotor motor_9(9); // DC motor connected to port 9
+MeDCMotor motor_10(10); // DC motor connected to port 10
 
-// Wander control variables
-double turnDuration;
-double forwardDuration;
-double lineTurnDuration;
-double targetForwardSpeed;
-double targetTurnSpeed;
-int acceleration;
-int wanderCycle;
+// Variables to control the wander behavior
+double turnDuration; // Duration of the turning action in seconds
+double forwardDuration; // Duration of the forward movement in seconds
+double lineTurnDuration; // Duration of the turn when a line is detected
+double targetForwardSpeed; // Desired speed for forward movement
+double targetTurnSpeed; // Desired speed for turning
+int acceleration; // Factor to increase/decrease speed gradually
+int wanderCycle; // Counter for the number of wander cycles completed
 
-// Boolean to determine if input is valid
+// Flag to determine if the inputs for wander behavior are valid
 boolean doWander;
 
-// Example general input parameters
-double duration = 10;
-boolean stayInBounds = true;
+// General input parameters for the wander behavior
+double duration = 10; // Total duration of the wander behavior in seconds
+boolean stayInBounds = true; // Flag to stay within a bounded area
 
-// Example wander input parameters
-double wanderSpeed = 100;
-double wanderSlope = 0;
-double wanderRoundness = 1;
-double wanderTurnToForwardRatio = 0.9;
-double wanderCycleRate = 2;
-double wanderCycleStandardDeviation = 0.5;
-double wanderSpeedStandardDeviation = 0.5;
-double wanderPhase = 0;
+// Specific input parameters for configuring the wander behavior
+double wanderSpeed = 100; // Base speed for wandering
+double wanderSlope = 0; // Slope for changing speed dynamically
+double wanderRoundness = 1; // Factor for adjusting the sharpness of turns
+double wanderTurnToForwardRatio = 0.9; // Ratio of turn duration to forward duration within a cycle
+double wanderCycleRate = 2; // Number of cycles per second
+double wanderCycleStandardDeviation = 0.5; // Variability in the cycle rate
+double wanderSpeedStandardDeviation = 0.5; // Variability in the speed
+double wanderPhase = 0; // Initial phase delay before starting to wander
 
-// Built-in method to get current time
+// Function to calculate the elapsed time since the last reset
 double getLastTime() 
 { 
+  // Update currentTime, calculate and return the elapsed time since last reset
   return currentTime = millis() / 1000.0 - lastTime; 
 }
 
+// Custom delay function to pause execution for a given number of seconds
 void _delay(double seconds) 
 {
-  long endTime = millis() + seconds * 1000;
-  while (millis() < endTime) _loop();
+  long endTime = millis() + seconds * 1000; // Calculate end time in milliseconds
+  while (millis() < endTime) _loop(); // Loop until the end time is reached
 }
 
-// Built-in method to move robot in certain direction
+// Function to control the robot's movement in a specified direction at a specified speed
 void move(int direction, int speed) 
 {
-  int leftSpeed = 0;
-  int rightSpeed = 0;
+  int leftSpeed = 0; // Speed of the left motor
+  int rightSpeed = 0; // Speed of the right motor
 
+  // Determine the speed of each motor based on the desired direction of movement
   if (direction == 1) {
     // Forward
     leftSpeed = speed;
@@ -76,14 +79,12 @@ void move(int direction, int speed)
     rightSpeed = -speed;
   }
 
-  // Run left motor at given speed
-  motor_9.run(9 == M1 ? -leftSpeed : leftSpeed);
-
-  // Run right motor at given speed
+  // Apply the calculated speeds to the motors
+  motor_9.run(9 == M1 ? -leftSpeed : leftSpeed); // Adjust direction based on motor configuration
   motor_10.run(10 == M1 ? -rightSpeed : rightSpeed);
 }
 
-// Helper method to generate a random standard gaussian number
+// Generates a random number with a Gaussian distribution around a mean of 0
 double GenerateGaussian(double standardDeviation) 
 {
     double u1 = rand() / (RAND_MAX + 1.0);
@@ -92,27 +93,28 @@ double GenerateGaussian(double standardDeviation)
     return z0 * standardDeviation;
 }
 
+// Generates a random number within a specified range [min, max]
 double GetRandomNumber(double min, double max)
 {
     double randomNumber = (double)rand() / RAND_MAX; // Generate a random value between 0 and 1
     return (randomNumber * (max - min)) + min; // Scale and shift to the specified range
 }
 
+// Caps a number within a specified range [lowerLimit, upperLimit]
 void CapNumber(double* number, double lowerLimit, double upperLimit)
 {
-    // Cap number to lower limit
     if (*number < lowerLimit) {
-        *number = lowerLimit;
+        *number = lowerLimit; // Cap to lower limit
     }
-
-    // Cap number to upper limit
     if (*number > upperLimit) {
-        *number = upperLimit;
+        *number = upperLimit; // Cap to upper limit
     }
 }
 
+// Checks whether the input parameters for wander behavior are within valid ranges
 void CheckValidWanderInput(double speed, double slope, double roundness, double turnToForwardRatio, double cycleRate, double cycleStandardDeviation, double speedStandardDeviation, double phase)
 {
+  // Validate each input parameter against its acceptable range
   boolean isValidSpeed = speed >= 25 && speed <= 100;
   boolean isValidSlope = slope >= -5 && slope <= 5;
   boolean isValidRoundness = roundness >= 0 && roundness <= 1;
@@ -121,25 +123,20 @@ void CheckValidWanderInput(double speed, double slope, double roundness, double 
   boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && speedStandardDeviation >= 0;
   boolean isValidPhase = phase >= 0;
 
+  // Set doWander to true only if all parameters are valid
   doWander = isValidSpeed && isValidSlope && isValidRoundness && isValidTurnToForwardRatio && isCycleRatePositive && isValidStandardDeviation && isValidPhase;
 }
 
-// Helper method to set the forward, turn, and line turn durations for the wander base behavior
+// Sets the durations for forward movement, turning, and line avoidance turning
 void SetWanderDurations(double speed, double turnToForwardRatio, double cycleRate, double cycleStandardDeviation)
 {
-  // Set base forward duration based on input cycle rate
-  forwardDuration = (1 - turnToForwardRatio) / cycleRate;
+  forwardDuration = (1 - turnToForwardRatio) / cycleRate; // Calculate base forward duration
+  forwardDuration += GenerateGaussian(cycleStandardDeviation); // Add variability
+  CapNumber(&forwardDuration, 0, 1 / cycleRate); // Ensure duration is within bounds
 
-  // Add random normal variation to the base turn duration
-  forwardDuration += GenerateGaussian(cycleStandardDeviation);
+  turnDuration = 1 / cycleRate - forwardDuration; // Calculate turn duration based on remaining time in the cycle
 
-  // Cap the forward duration to be between zero and the inverse of the cycle rate in seconds
-  CapNumber(&forwardDuration, 0, 1 / cycleRate);
-
-  // Set turn duration
-  turnDuration = 1 / cycleRate - forwardDuration;
-
-  // Set line turn duration
+  // Calculate line turn duration based on speed
   if (speed <= 100 && speed >= 50) {
     lineTurnDuration = 0.5;
   } else {
@@ -147,16 +144,13 @@ void SetWanderDurations(double speed, double turnToForwardRatio, double cycleRat
   }
 }
 
-// Helper method to set the target forward and turn speed for the wander base behavior
+// Sets the target speeds for forward movement and turning
 void SetTargetSpeeds(double speed, double roundness, double speedStandardDeviation)
 {
-  // Add random normal variation to the input wander speed to get the target forward speed
-  targetForwardSpeed = speed + GenerateGaussian(speedStandardDeviation);
+  targetForwardSpeed = speed + GenerateGaussian(speedStandardDeviation); // Add variability to forward speed
+  CapNumber(&targetForwardSpeed, 25, 100); // Ensure speed is within bounds
 
-  // Cap target forward speed to be between 25 and 100
-  CapNumber(&targetForwardSpeed, 25, 100);
-
-  // Set target turn speed based on input roundness and target speed
+  // Calculate target turn speed based on forward speed and roundness
   targetTurnSpeed = -targetForwardSpeed / 2 + 4 * targetForwardSpeed * roundness - 4 * targetForwardSpeed * pow(roundness, 2);
 }
 
@@ -164,124 +158,108 @@ void SetTargetSpeeds(double speed, double roundness, double speedStandardDeviati
 void Wander(double duration, boolean stayInBounds,
             double wanderSpeed, double wanderSlope, double wanderRoundness, double wanderTurnToForwardRatio, double wanderCycleRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase) 
 {
-  // INPUT CHECKS AND VARIABLE INITIALIZATION
-
-  // Check if wander input is valid
+  // Validates the input parameters for the wander behavior.
   CheckValidWanderInput(wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase);
 
-  // If wander input is valid, initialize wander variables
+  // Proceeds with the wander behavior if the inputs are validated successfully.
   if (doWander) {
-    // Set the target forward and turning speeds based on given input
+    // Calculates and sets target speeds for both forward movement and turning based on inputs and variability.
     SetTargetSpeeds(wanderSpeed, wanderRoundness, wanderSpeedStandardDeviation);
     
-    // Set turn, line turn and forward durations based on given input
+    // Determines durations for forward movement, turning, and line-avoidance based on inputs and variability.
     SetWanderDurations(wanderSpeed, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation);
 
-    // Variable used to determine if robot should turn left or right
+    // Initializes the counter to keep track of completed wander cycles.
     wanderCycle = 0;
 
-    // Variable used to compute the acceleration of the forward segment 
+    // Sets the initial acceleration for speed adjustment during forward movement, used when slope != 0.
     acceleration = 1; 
   }
 
-  // MAIN LOOP
-
-  // Initialize timer
+  // Records the start time of the wander behavior.
   lastTime = millis() / 1000.0;
 
-  // Loop during given duration 
+  // Continues executing the wander behavior for the specified duration.
   while (!(getLastTime() > duration)) {
     _loop();
 
-    // If valid wander input is given
+    // Checks if wander behavior is still valid and should continue.
     if (doWander) {
-      // Start executing after the given phase
+      // Delay start based on the wanderPhase parameter to allow for timed initiation of wandering.
       if (getLastTime() - wanderPhase >= 0) {
-        // Turn around if a black line is detected
+        // Enforces boundary constraints if required.
         if (stayInBounds) {
-          // Get sensor reading
+          // Reads sensor values to detect boundaries (e.g., lines on the floor).
           int sensorReading = linefollower_2.readSensors();
 
-          // Turn left if right sensor detects a black line
-          if ((0 ? (1 == 0 ? sensorReading == 0 : (sensorReading & 1) == 1)
-                  : (1 == 0 ? sensorReading == 3 : (sensorReading & 1) == 0))) {
-              move(3, targetForwardSpeed / 100.0 * 255);
-              _delay(lineTurnDuration);
-              move(3, 0);
+          // Executes avoidance maneuver if a black line is detected by the right sensor.
+          if ((sensorReading & 1) == 1) { // Condition checks if the first bit is set, indicating the right sensor detects a line.
+              move(3, targetForwardSpeed / 100.0 * 255); // Turns left to avoid crossing the line.
+              _delay(lineTurnDuration); // Waits for the duration of the turn.
+              move(3, 0); // Stops the turn.
           }
 
-          // Turn right if left sensor detects a black line
-          if ((0 ? (2 == 0 ? sensorReading == 0 : (sensorReading & 2) == 2)
-                  : (2 == 0 ? sensorReading == 3 : (sensorReading & 2) == 0))) {
-              move(4, targetForwardSpeed / 100.0 * 255);
-              _delay(lineTurnDuration);
-              move(4, 0);
+          // Executes avoidance maneuver if a black line is detected by the left sensor.
+          if ((sensorReading & 2) == 2) { // Condition checks if the second bit is set, indicating the left sensor detects a line.
+              move(4, targetForwardSpeed / 100.0 * 255); // Turns right to avoid crossing the line.
+              _delay(lineTurnDuration); // Waits for the duration of the turn.
+              move(4, 0); // Stops the turn.
           }
         }
       }
 
-      // Move forward for given duration
-
-      // Constant slope
+      // Determines if it's time to move forward based on the current phase and cycle rate.
       if (wanderSlope == 0) {
+        // Moves forward at a constant speed if there's no slope.
         if (getLastTime() - wanderPhase < wanderCycle / wanderCycleRate + forwardDuration) {
           move(1, targetForwardSpeed / 100.0 * 255);
         } 
-      }
-
-      // Rising slope
-      if (wanderSlope > 0) {
+      } else if (wanderSlope > 0) {
+        // Gradually increases speed if the slope is positive.
         if (getLastTime() - wanderPhase < wanderCycle / wanderCycleRate + acceleration * forwardDuration / 100) {
           move(1, wanderSlope * acceleration * targetForwardSpeed / 100 / 100.0 * 255);
-        } else {
           if (acceleration < 100) {
-            acceleration += 1;
+            acceleration += 1; // Increment acceleration until it reaches 100.
           }
         }
-      }
-
-      // Falling slope
-      if (wanderSlope < 0) {
+      } else if (wanderSlope < 0) {
+        // Gradually decreases speed if the slope is negative.
         if (getLastTime() - wanderPhase < wanderCycle / wanderCycleRate + acceleration * forwardDuration / 100) {
           move(1, wanderSlope * (acceleration - 100) * targetForwardSpeed / 100 / 100.0 * 255);
-        } else {
           if (acceleration < 100) {
-            acceleration += 1;
+            acceleration += 1; // Increment acceleration until it reaches 100, for decreasing speed.
           }
         }
       }
 
-      // Turn for given duration
+      // Initiates a turn after the forward movement phase is complete.
       if (getLastTime() - wanderPhase > wanderCycle / wanderCycleRate + forwardDuration && 
           getLastTime() - wanderPhase < (wanderCycle + 1) / wanderCycleRate) {
+        // Alternates turning direction with each cycle.
         if (fmod(wanderCycle, 2) == 0) {
-          // Turn right
+          // Executes a right turn on even cycles.
           motor_9.run(-targetForwardSpeed / 100.0 * 255);
           motor_10.run(targetTurnSpeed / 100.0 * 255);
         } else {
-          // Turn left
+          // Executes a left turn on odd cycles.
           motor_9.run(-targetTurnSpeed / 100.0 * 255);
           motor_10.run(targetForwardSpeed / 100.0 * 255);
         }
       }
 
-      // After forward and turn cycle is finished
+      // Prepares for the next cycle after completing both forward movement and turning.
       if (getLastTime() - wanderPhase > (wanderCycle + 1) / wanderCycleRate) {
-        // Increase cycle count by one
-        wanderCycle += 1;
+        wanderCycle += 1; // Increments the cycle counter.
+        acceleration = 1; // Resets acceleration for the next cycle.
 
-        // Reset to one
-        acceleration = 1;
-
-        // Change target forward and turning speeds
+        // Recalculates speeds and durations for the next cycle, incorporating variability.
         SetTargetSpeeds(wanderSpeed, wanderRoundness, wanderSpeedStandardDeviation);
-
-        // Change forward and turn durations
         SetWanderDurations(wanderSpeed, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation);
       }
     }
   }
 
+  // Stops the motors to halt the robot's movement at the end of the wander behavior.
   motor_9.run(0);
   motor_10.run(0);
 }
