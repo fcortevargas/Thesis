@@ -1,4 +1,4 @@
 .DS_store
-.mp4
-/[Ii]nput/
-/[Ou]utput/
+*.mp4
+[Ii]nput/
+[Ou]utput/
