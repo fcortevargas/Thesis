@@ -1,4 +1,7 @@
 .DS_store
 *.mp4
+*.aac
+*.docx
+*.pdf
 [Ii]nput/
 [Ou]utput/
