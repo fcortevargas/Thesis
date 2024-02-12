@@ -20,6 +20,7 @@ MeIR ir;
 // Wander control variables
 double turnDuration;
 double forwardDuration;
+double turnToForwardRatio;
 double lineTurnDuration;
 double targetForwardSpeed;
 double targetTurnSpeed;
@@ -56,7 +57,6 @@ boolean stayInBounds;
 double wanderSpeed;
 double wanderSlope;
 double wanderRoundness;
-double wanderTurnToForwardRatio;
 double wanderCycleRate;
 double wanderCycleStandardDeviation;
 double wanderSpeedStandardDeviation;
@@ -136,22 +136,26 @@ double GetRandomNumber(double min, double max)
     return (randomNumber * (max - min)) + min; // Scale and shift to the specified range
 }
 
-// Helper method to set the forward, turn, and line turn durations for the wander base behavior
-void SetWanderDurations(double speed, double turnToForwardRatio, double cycleRate, double cycleStandardDeviation)
+void SetTurnToForwardRatio(double roundness, double cycleRate)
 {
-  // Set base forward duration based on input cycle rate
-  forwardDuration = (1 - turnToForwardRatio) / cycleRate;
+  // Calculate turn to forward ratio based on roundness and cycle rate
+  if (roundness >= 0.5) {
+    turnToForwardRatio = 0.9;
+  } else {
+    turnToForwardRatio = 0.245455 + 0.109091 * cycleRate - 0.6 * roundness;
+  }
+}
 
-  // Add random normal variation to the base turn duration
-  forwardDuration += GenerateGaussian(cycleStandardDeviation);
+// Sets the durations for forward movement, turning, and line avoidance turning
+void SetWanderDurations(double speed, double roundness, double cycleRate, double cycleStandardDeviation)
+{
+  forwardDuration = (1 - turnToForwardRatio) / cycleRate; // Calculate base forward duration
+  forwardDuration += GenerateGaussian(cycleStandardDeviation); // Add variability
+  CapNumber(&forwardDuration, 0, 1 / cycleRate); // Ensure duration is within bounds
 
-  // Cap the forward duration to be between zero and the inverse of the cycle rate in seconds
-  CapNumber(&forwardDuration, 0, 1 / cycleRate);
+  turnDuration = 1 / cycleRate - forwardDuration; // Calculate turn duration based on remaining time in the cycle
 
-  // Set turn duration
-  turnDuration = 1 / cycleRate - forwardDuration;
-
-  // Set line turn duration
+  // Calculate line turn duration based on speed
   if (speed <= 100 && speed >= 50) {
     lineTurnDuration = 0.5;
   } else {
@@ -191,17 +195,18 @@ void SetBeepDurations(double soundToSilenceRatio, double cycleRate, double cycle
   soundDuration = 1 / cycleRate - silenceDuration;
 }
 
-// Helper method to set the target forward and turn speed for the wander base behavior
+// Sets the target speeds for forward movement and turning
 void SetTargetSpeeds(double speed, double roundness, double speedStandardDeviation)
 {
-  // Add random normal variation to the input wander speed to get the target forward speed
-  targetForwardSpeed = speed + GenerateGaussian(speedStandardDeviation);
+  targetForwardSpeed = speed + GenerateGaussian(speedStandardDeviation); // Add variability to forward speed
+  CapNumber(&targetForwardSpeed, 20, 100); // Ensure speed is within bounds
 
-  // Cap target forward speed to be between 25 and 100
-  CapNumber(&targetForwardSpeed, 25, 100);
-
-  // Set target turn speed based on input roundness and target speed
-  targetTurnSpeed = -targetForwardSpeed / 2 + 4 * targetForwardSpeed * roundness - 4 * targetForwardSpeed * pow(roundness, 2);
+  // Calculate target turn speed based on forward speed and roundness
+  if (roundness >= 0.5) { 
+    targetTurnSpeed = -1.6 * targetForwardSpeed * roundness + 1.8 * targetForwardSpeed;
+  } else {
+    targetTurnSpeed = 1.6 * targetForwardSpeed * roundness - targetForwardSpeed;
+  }
 }
 
 // Helper method to set the target red, blue and green intensity for the blink base behavior
@@ -279,27 +284,30 @@ void PlayRandomSoundWithProbability(double slope, double randomSoundProbability,
 
 // Method to execute robot's base behaviors wander, blink and beep
 void WanderBlinkBeep(double duration, boolean stayInBounds,
-                     double wanderSpeed, double wanderSlope, double wanderRoundness, double wanderTurnToForwardRatio, double wanderCycleRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase, 
+                     double wanderSpeed, double wanderSlope, double wanderRoundness, double wanderCycleRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase, 
                      double blinkTemperature, double blinkSlope, double blinkLightsOnToOffRatio, double blinkCycleRate, double blinkCycleStandardDeviation, double blinkTemperatureStandardDeviation, double blinkPhase,
                      double beepPitch, double beepSlope, double beepSoundToSilenceRatio, double beepCycleRate, double beepCycleStandardDeviation, double beepPitchStandardDeviation, double beepRandomSoundProbability, double beepPhase) 
 {
   // INPUT CHECKS AND VARIABLE INITIALIZATION
 
   // Check if wander input is valid
-  CheckValidWanderInput(wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase);
+  CheckValidWanderInput(wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase);
 
   // If wander input is valid, initialize wander variables
   if (doWander) {
-    // Set the target forward and turning speeds based on given input
+    // Determines the turn to forward ratio to make sure the round movements look round, and the sharp movement look sharp.
+    SetTurnToForwardRatio(wanderRoundness, wanderCycleRate);
+
+    // Calculates and sets target speeds for both forward movement and turning based on inputs and variability.
     SetTargetSpeeds(wanderSpeed, wanderRoundness, wanderSpeedStandardDeviation);
     
-    // Set turn, line turn and forward durations based on given input
-    SetWanderDurations(wanderSpeed, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation);
+    // Determines durations for forward movement, turning, and line-avoidance based on inputs and variability.
+    SetWanderDurations(wanderSpeed, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation);
 
-    // Variable used to determine if robot should turn left or right
+    // Initializes the counter to keep track of completed wander cycles.
     wanderCycle = 0;
 
-    // Variable used to compute the acceleration of the forward segment 
+    // Sets the initial acceleration for speed adjustment during forward movement, used when slope != 0.
     acceleration = 1; 
   }
 
@@ -340,7 +348,7 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
 
   // MAIN LOOP
 
-  MagentaTransition(5);
+  MagentaTransition(2);
 
   // Initialize timer
   lastTime = millis() / 1000.0;
@@ -423,17 +431,12 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
 
       // After forward and turn cycle is finished
       if (getLastTime() - wanderPhase > (wanderCycle + 1) / wanderCycleRate) {
-        // Increase cycle count by one
-        wanderCycle += 1;
+        wanderCycle += 1; // Increments the cycle counter.
+        acceleration = 1; // Resets acceleration for the next cycle.
 
-        // Reset to one
-        acceleration = 1;
-
-        // Change target forward and turning speeds
+        // Recalculates speeds and durations for the next cycle, incorporating variability.
         SetTargetSpeeds(wanderSpeed, wanderRoundness, wanderSpeedStandardDeviation);
-
-        // Change forward and turn durations
-        SetWanderDurations(wanderSpeed, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation);
+        SetWanderDurations(wanderSpeed, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation);
       }
     }
 
@@ -570,21 +573,21 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
 
   motor_9.run(0);
   motor_10.run(0);
-
-  MagentaTransition(5);
 }
 
-void CheckValidWanderInput(double speed, double slope, double roundness, double turnToForwardRatio, double cycleRate, double cycleStandardDeviation, double speedStandardDeviation, double phase)
+// Checks whether the input parameters for wander behavior are within valid ranges
+void CheckValidWanderInput(double speed, double slope, double roundness, double cycleRate, double cycleStandardDeviation, double speedStandardDeviation, double phase)
 {
-  boolean isValidSpeed = speed >= 25 && speed <= 100;
+  // Validate each input parameter against its acceptable range
+  boolean isValidSpeed = speed >= 20 && speed <= 100;
   boolean isValidSlope = slope >= -5 && slope <= 5;
   boolean isValidRoundness = roundness >= 0 && roundness <= 1;
-  boolean isValidTurnToForwardRatio = turnToForwardRatio <= 1 && turnToForwardRatio > 0;
   boolean isCycleRatePositive = cycleRate > 0;
   boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && speedStandardDeviation >= 0;
   boolean isValidPhase = phase >= 0;
 
-  doWander = isValidSpeed && isValidSlope && isValidRoundness && isValidTurnToForwardRatio && isCycleRatePositive && isValidStandardDeviation && isValidPhase;
+  // Set doWander to true only if all parameters are valid
+  doWander = isValidSpeed && isValidSlope && isValidRoundness && isCycleRatePositive && isValidStandardDeviation && isValidPhase;
 }
 
 void CheckValidBlinkInput(double temperature, double slope, double lightsOnToOffRatio, double cycleRate, double cycleStandardDeviation, double temperatureStandardDeviation, double phase) 
@@ -660,8 +663,7 @@ void setup()
 
       // CONSTANT BASE BEHAVIORS INPUT PARAMETERS FOR ALL EMOTIONS
       wanderSlope = 0;
-      wanderTurnToForwardRatio = 0.8;
-      wanderCycleStandardDeviation = 0.45;
+      wanderCycleStandardDeviation = 0.4;
       wanderSpeedStandardDeviation = 0;
       wanderPhase = 0;
       
@@ -671,134 +673,332 @@ void setup()
       blinkPhase = 0;
 
       beepCycleStandardDeviation = 0.2;
-      beepPhase = 0;
       beepSoundToSilenceRatio = 0.625;
       beepPitchStandardDeviation = 67.5;
       beepRandomSoundProbability = 0;
+      beepPhase = 0;
 
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      wanderSpeed = 20.79188771545887;
+      wanderRoundness = 0.18843581154942513;
+      wanderCycleRate = 5.91658747382462;
+      blinkTemperature = 0.6092264782637358;
+      blinkSlope = 0.0;
+      blinkCycleRate = 2.737302861176431;
+      beepPitch = 468.3602748438716;
+      beepSlope = 1.0;
+      beepCycleRate = 1.9323576586320996;
 
-      // Emotion 1 blink & wander
-      wanderSpeed = 100;
-      wanderRoundness = 1;
-      wanderCycleRate = 0.5;
-
-      blinkTemperature = 0.7;
-      blinkSlope = 0;
-      blinkCycleRate = 5;
-
-      // INTERPOLATED WANDER AND BLINK INPUT PARAMETERS
-
-      // Run base behaviors
       WanderBlinkBeep(duration, stayInBounds,
-                      wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
                       blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
                       0, 0, 0, 0, 0, 0, 0, 0);
-  
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-      // Emotion 1 beep
-      beepPitch = 700;
-      beepSlope = 1;
-      beepCycleRate = 3;
-
-      // Run base behaviors
       WanderBlinkBeep(duration, stayInBounds,
-                      0, 0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
                       0, 0, 0, 0, 0, 0, 0,
                       beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
-  
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-      // Emotion 2 blink & wander
-      wanderSpeed = 35;
-      wanderRoundness = 0.5;
-      wanderCycleRate = 0.5;
+      wanderSpeed = 95.78665927052498;
+      wanderRoundness = 0.9328951193019748;
+      wanderCycleRate = 2.7397806281223893;
+      blinkTemperature = 0.49988999124616385;
+      blinkSlope = -1.0;
+      blinkCycleRate = 5.9258051393553615;
+      beepPitch = 974.968974199146;
+      beepSlope = -1.0;
+      beepCycleRate = 5.668598286807537;
 
-      blinkTemperature = 0;
-      blinkSlope = -1;
-      blinkCycleRate = 0.1;
-
-      // Run base behaviors
       WanderBlinkBeep(duration, stayInBounds,
-                      wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
                       blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
                       0, 0, 0, 0, 0, 0, 0, 0);
-      
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-      // Emotion 2 beep
-      beepPitch = 100;
-      beepSlope = -1;
-      beepCycleRate = 0.5;
-
-      // Run base behaviors
       WanderBlinkBeep(duration, stayInBounds,
-                      0, 0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
                       0, 0, 0, 0, 0, 0, 0,
                       beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
-      
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-      // Emotion 3 blink & wander
-      wanderSpeed = 100;
-      wanderRoundness = 0;
-      wanderCycleRate = 5;
+      wanderSpeed = 61.50615155696869;
+      wanderRoundness = 0.30469578597694635;
+      wanderCycleRate = 3.503938944078982;
+      blinkTemperature = 0.9800494518131018;
+      blinkSlope = -0.0;
+      blinkCycleRate = 3.5673191524110734;
+      beepPitch = 181.81901322677732;
+      beepSlope = -0.0;
+      beepCycleRate = 3.7671734942123294;
 
-      blinkTemperature = 1;
-      blinkSlope = 1;
-      blinkCycleRate = 6;
-
-      // Run base behaviors
       WanderBlinkBeep(duration, stayInBounds,
-                      wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
                       blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
                       0, 0, 0, 0, 0, 0, 0, 0);
 
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-      // Emotion 3 beep
-      beepPitch = 900;
-      beepSlope = 1;
-      beepCycleRate = 4;
-
-      // Run base behaviors
       WanderBlinkBeep(duration, stayInBounds,
-                      0, 0, 0, 0, 0, 0, 0, 0,
                       0, 0, 0, 0, 0, 0, 0,
-                      beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
-      
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
 
-      // Emotion 4 blink & wander
-      wanderSpeed = 40;
-      wanderRoundness = 0;
-      wanderCycleRate = 6;
+      wanderSpeed = 56.51984415948391;
+      wanderRoundness = 0.5661607813090086;
+      wanderCycleRate = 1.178071552887559;
+      blinkTemperature = 0.12075872626155615;
+      blinkSlope = 1.0;
+      blinkCycleRate = 1.0676599754951894;
+      beepPitch = 575.9761247783899;
+      beepSlope = 0.0;
+      beepCycleRate = 1.4058800656348467;
 
-      blinkTemperature = 0.3;
-      blinkSlope = -1;
-      blinkCycleRate = 0.1;
-
-      // Run base behaviors
       WanderBlinkBeep(duration, stayInBounds,
-                      wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
                       blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
                       0, 0, 0, 0, 0, 0, 0, 0);
-      
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-      // Emotion 4 beep
-      beepPitch = 200;
-      beepSlope = -1;
-      beepCycleRate = 0.2;
-
-      // Run base behaviors
       WanderBlinkBeep(duration, stayInBounds,
-                      0, 0, 0, 0, 0, 0, 0, 0,
                       0, 0, 0, 0, 0, 0, 0,
-                      beepPitch, beepSlope, beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
-      
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 43.065891712903976;
+      wanderRoundness = 0.47996396385133266;
+      wanderCycleRate = 1.902680539060384;
+      blinkTemperature = 0.15173155814409256;
+      blinkSlope = 1.0;
+      blinkCycleRate = 2.0670012910850346;
+      beepPitch = 248.220918700099;
+      beepSlope = -0.0;
+      beepCycleRate = 4.017849836498499;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 78.05090226233006;
+      wanderRoundness = 0.6413808846846223;
+      wanderCycleRate = 5.078158379998058;
+      blinkTemperature = 0.7611302891746163;
+      blinkSlope = -0.0;
+      blinkCycleRate = 5.232508492190391;
+      beepPitch = 754.1187253780663;
+      beepSlope = 0.0;
+      beepCycleRate = 0.876415797509253;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 84.87176947295666;
+      wanderRoundness = 0.019091862253844738;
+      wanderCycleRate = 1.6714107929728925;
+      blinkTemperature = 0.2803516536951065;
+      blinkSlope = -1.0;
+      blinkCycleRate = 4.238972675055265;
+      beepPitch = 401.1878243647516;
+      beepSlope = 1.0;
+      beepCycleRate = 3.099980166181922;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 39.875700771808624;
+      wanderRoundness = 0.8517507873475552;
+      wanderCycleRate = 3.9986294810660183;
+      blinkTemperature = 0.6398266637697816;
+      blinkSlope = 0.0;
+      blinkCycleRate = 1.7596230283379555;
+      beepPitch = 794.5241799578071;
+      beepSlope = -1.0;
+      beepCycleRate = 4.866383082233369;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 31.086539551615715;
+      wanderRoundness = 0.3150118626654148;
+      wanderCycleRate = 1.2123642768710852;
+      blinkTemperature = 0.866713042370975;
+      blinkSlope = -1.0;
+      blinkCycleRate = 0.577814910095185;
+      beepPitch = 272.04505940899253;
+      beepSlope = -0.0;
+      beepCycleRate = 4.524868447799236;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 86.0825315117836;
+      wanderRoundness = 0.5558469695970416;
+      wanderCycleRate = 4.398593668825924;
+      blinkTemperature = 0.22629413194954395;
+      blinkSlope = 0.0;
+      blinkCycleRate = 3.748692877124995;
+      beepPitch = 665.2684001252055;
+      beepSlope = 0.0;
+      beepCycleRate = 0.7026377650909126;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 71.60579606890678;
+      wanderRoundness = 0.18202598486095667;
+      wanderCycleRate = 2.3670871974900365;
+      blinkTemperature = 0.7380699245259166;
+      blinkSlope = 1.0;
+      blinkCycleRate = 5.430064377374947;
+      beepPitch = 379.23456467688084;
+      beepSlope = 1.0;
+      beepCycleRate = 2.604114866349846;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 46.62070907652378;
+      wanderRoundness = 0.9393026810139418;
+      wanderCycleRate = 4.683575643226504;
+      blinkTemperature = 0.3476052824407816;
+      blinkSlope = -0.0;
+      blinkCycleRate = 2.945343309082091;
+      beepPitch = 885.019249189645;
+      beepSlope = -1.0;
+      beepCycleRate = 5.051293404307216;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 52.574716210365295;
+      wanderRoundness = 0.10264786146581173;
+      wanderCycleRate = 3.8622643393464386;
+      blinkTemperature = 0.3779489370062947;
+      blinkSlope = -0.0;
+      blinkCycleRate = 1.2588363755494356;
+      beepPitch = 500.805461127311;
+      beepSlope = 1.0;
+      beepCycleRate = 2.439030065666884;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 67.5609477609396;
+      wanderRoundness = 0.7681925231590867;
+      wanderCycleRate = 0.6747269234620035;
+      blinkTemperature = 0.5187957622110844;
+      blinkSlope = 1.0;
+      blinkCycleRate = 4.45270941965282;
+      beepPitch = 895.0757216662169;
+      beepSlope = -1.0;
+      beepCycleRate = 5.494495071936399;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 94.49747629463673;
+      wanderRoundness = 0.3925017146393657;
+      wanderCycleRate = 5.563623142894357;
+      blinkTemperature = 0.007133697159588337;
+      blinkSlope = 0.0;
+      blinkCycleRate = 4.747688336763531;
+      beepPitch = 147.50291910022497;
+      beepSlope = -0.0;
+      beepCycleRate = 3.2709619901143014;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+
+      wanderSpeed = 29.502628594636917;
+      wanderRoundness = 0.7288453988730907;
+      wanderCycleRate = 3.2485069748945534;
+      blinkTemperature = 0.8979042731225491;
+      blinkSlope = -1.0;
+      blinkCycleRate = 2.2426577382721007;
+      beepPitch = 654.2246601544321;
+      beepSlope = 0.0;
+      beepCycleRate = 1.5904652052558959;
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase,
+                      blinkTemperature, blinkSlope, blinkLightsOnToOffRatio, blinkCycleRate, blinkCycleStandardDeviation, blinkTemperatureStandardDeviation, blinkPhase,
+                      0, 0, 0, 0, 0, 0, 0, 0);
+
+      WanderBlinkBeep(duration, stayInBounds,
+                      0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0,
+                      beepPitch, beepSlope,beepSoundToSilenceRatio, beepCycleRate, beepCycleStandardDeviation, beepPitchStandardDeviation, beepRandomSoundProbability, beepPhase);
+          
+      MagentaTransition(2);
     }
     _loop();
   }

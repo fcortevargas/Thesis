@@ -13,10 +13,12 @@ double lastTime = 0; // Stores the last time an action was taken in seconds
 MeLineFollower linefollower_2(2); // Line follower module on port 2
 MeDCMotor motor_9(9); // DC motor connected to port 9
 MeDCMotor motor_10(10); // DC motor connected to port 10
+MeIR ir; // Infrared control remote receiver
 
 // Variables to control the wander behavior
 double turnDuration; // Duration of the turning action in seconds
 double forwardDuration; // Duration of the forward movement in seconds
+double turnToForwardRatio; // Ratio of the turning and forward movement durations
 double lineTurnDuration; // Duration of the turn when a line is detected
 double targetForwardSpeed; // Desired speed for forward movement
 double targetTurnSpeed; // Desired speed for turning
@@ -27,17 +29,16 @@ int wanderCycle; // Counter for the number of wander cycles completed
 boolean doWander;
 
 // General input parameters for the wander behavior
-double duration = 10; // Total duration of the wander behavior in seconds
+double duration = 20; // Total duration of the wander behavior in seconds
 boolean stayInBounds = true; // Flag to stay within a bounded area
 
 // Specific input parameters for configuring the wander behavior
-double wanderSpeed = 100; // Base speed for wandering
+double wanderSpeed = 82; // Base speed for wandering
 double wanderSlope = 0; // Slope for changing speed dynamically
-double wanderRoundness = 0.5; // Factor for adjusting the sharpness of turns
-double wanderTurnToForwardRatio = 0.9; // Ratio of turn duration to forward duration within a cycle
-double wanderCycleRate = 2; // Number of cycles per second
-double wanderCycleStandardDeviation = 0.5; // Variability in the cycle rate
-double wanderSpeedStandardDeviation = 0.5; // Variability in the speed
+double wanderRoundness = 1; // Factor for adjusting the sharpness of turns
+double wanderCycleRate = 1; // Number of cycles per second
+double wanderCycleStandardDeviation = 0.45; // Variability in the cycle rate
+double wanderSpeedStandardDeviation = 0; // Variability in the speed
 double wanderPhase = 0; // Initial phase delay before starting to wander
 
 // Function to calculate the elapsed time since the last reset
@@ -112,23 +113,32 @@ void CapNumber(double* number, double lowerLimit, double upperLimit)
 }
 
 // Checks whether the input parameters for wander behavior are within valid ranges
-void CheckValidWanderInput(double speed, double slope, double roundness, double turnToForwardRatio, double cycleRate, double cycleStandardDeviation, double speedStandardDeviation, double phase)
+void CheckValidWanderInput(double speed, double slope, double roundness, double cycleRate, double cycleStandardDeviation, double speedStandardDeviation, double phase)
 {
   // Validate each input parameter against its acceptable range
-  boolean isValidSpeed = speed >= 25 && speed <= 100;
+  boolean isValidSpeed = speed >= 20 && speed <= 100;
   boolean isValidSlope = slope >= -5 && slope <= 5;
   boolean isValidRoundness = roundness >= 0 && roundness <= 1;
-  boolean isValidTurnToForwardRatio = turnToForwardRatio <= 1 && turnToForwardRatio > 0;
   boolean isCycleRatePositive = cycleRate > 0;
   boolean isValidStandardDeviation = cycleStandardDeviation >= 0 && speedStandardDeviation >= 0;
   boolean isValidPhase = phase >= 0;
 
   // Set doWander to true only if all parameters are valid
-  doWander = isValidSpeed && isValidSlope && isValidRoundness && isValidTurnToForwardRatio && isCycleRatePositive && isValidStandardDeviation && isValidPhase;
+  doWander = isValidSpeed && isValidSlope && isValidRoundness && isCycleRatePositive && isValidStandardDeviation && isValidPhase;
+}
+
+void SetTurnToForwardRatio(double roundness, double cycleRate)
+{
+  // Calculate turn to forward ratio based on roundness and cycle rate
+  if (roundness >= 0.5) {
+    turnToForwardRatio = 0.9;
+  } else {
+    turnToForwardRatio = 0.245455 + 0.109091 * cycleRate - 0.6 * roundness;
+  }
 }
 
 // Sets the durations for forward movement, turning, and line avoidance turning
-void SetWanderDurations(double speed, double turnToForwardRatio, double cycleRate, double cycleStandardDeviation)
+void SetWanderDurations(double speed, double roundness, double cycleRate, double cycleStandardDeviation)
 {
   forwardDuration = (1 - turnToForwardRatio) / cycleRate; // Calculate base forward duration
   forwardDuration += GenerateGaussian(cycleStandardDeviation); // Add variability
@@ -148,26 +158,33 @@ void SetWanderDurations(double speed, double turnToForwardRatio, double cycleRat
 void SetTargetSpeeds(double speed, double roundness, double speedStandardDeviation)
 {
   targetForwardSpeed = speed + GenerateGaussian(speedStandardDeviation); // Add variability to forward speed
-  CapNumber(&targetForwardSpeed, 25, 100); // Ensure speed is within bounds
+  CapNumber(&targetForwardSpeed, 20, 100); // Ensure speed is within bounds
 
   // Calculate target turn speed based on forward speed and roundness
-  targetTurnSpeed = -targetForwardSpeed / 2 + 4 * targetForwardSpeed * roundness - 4 * targetForwardSpeed * pow(roundness, 2);
+  if (roundness >= 0.5) { 
+    targetTurnSpeed = -1.6 * targetForwardSpeed * roundness + 1.8 * targetForwardSpeed;
+  } else {
+    targetTurnSpeed = 1.6 * targetForwardSpeed * roundness - targetForwardSpeed;
+  }
 }
 
 // Method to execute the wander base behavior
 void Wander(double duration, boolean stayInBounds,
-            double wanderSpeed, double wanderSlope, double wanderRoundness, double wanderTurnToForwardRatio, double wanderCycleRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase) 
+            double wanderSpeed, double wanderSlope, double wanderRoundness, double wanderCycleRate, double wanderCycleStandardDeviation, double wanderSpeedStandardDeviation, double wanderPhase) 
 {
   // Validates the input parameters for the wander behavior.
-  CheckValidWanderInput(wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase);
+  CheckValidWanderInput(wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase);
 
   // Proceeds with the wander behavior if the inputs are validated successfully.
   if (doWander) {
+    // Determines the turn to forward ratio to make sure the round movements look round, and the sharp movement look sharp.
+    SetTurnToForwardRatio(wanderRoundness, wanderCycleRate);
+
     // Calculates and sets target speeds for both forward movement and turning based on inputs and variability.
     SetTargetSpeeds(wanderSpeed, wanderRoundness, wanderSpeedStandardDeviation);
     
     // Determines durations for forward movement, turning, and line-avoidance based on inputs and variability.
-    SetWanderDurations(wanderSpeed, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation);
+    SetWanderDurations(wanderSpeed, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation);
 
     // Initializes the counter to keep track of completed wander cycles.
     wanderCycle = 0;
@@ -256,7 +273,7 @@ void Wander(double duration, boolean stayInBounds,
 
         // Recalculates speeds and durations for the next cycle, incorporating variability.
         SetTargetSpeeds(wanderSpeed, wanderRoundness, wanderSpeedStandardDeviation);
-        SetWanderDurations(wanderSpeed, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation);
+        SetWanderDurations(wanderSpeed, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation);
       }
     }
   }
@@ -269,20 +286,28 @@ void Wander(double duration, boolean stayInBounds,
 // Setup function to initialize the robot and start the wander behavior
 void setup() 
 {
-  randomSeed(0); // Initialize the random number generator seed.
+  // Initialize remote control signaling
+  ir.begin();
 
-  // Start the wandering behavior with the specified parameters.
-  Wander(duration, stayInBounds, wanderSpeed, wanderSlope, wanderRoundness, wanderTurnToForwardRatio, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase); // Start wandering
+  // Initialize the random number generator seed.
+  randomSeed(0);
+
+  while (true) {
+    // If right key is pressed on the remote control
+    if (ir.keyPressed(9)) {
+      // Start the wandering behavior with the specified parameters.
+      Wander(duration, stayInBounds, wanderSpeed, wanderSlope, wanderRoundness, wanderCycleRate, wanderCycleStandardDeviation, wanderSpeedStandardDeviation, wanderPhase); // Start wandering
+    }
+  }
 }
 
-// Placeholder loop function, required for Arduino structure but not used
 void _loop() 
 {
-  
+  ir.loop(); // Call the loop function of the infrared control remote receiver
 }
 
 // Main loop function, continuously called by Arduino framework
 void loop() 
 {
-  _loop(); // Call the placeholder loop function
+  _loop();
 }
