@@ -3,7 +3,6 @@
 *.aac
 [Ii]nput/
 [Ou]utput/
-[Ss]ide/
-[Tt]op/
+[Vv]ideos/
 *.mp4
 *.MOV
