@@ -1,15 +1,27 @@
 import cv2
 import subprocess
 import numpy as np
+import math
 
-def is_magenta_present(frame, threshold=50):
+def is_magenta_present(frame, threshold=110, display=False):
     """Check if there is a significant amount of magenta in the frame."""
     # Convert frame to RGB (OpenCV uses BGR by default)
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     magenta_lower = np.array([255 - threshold, 0, 255 - threshold])
     magenta_upper = np.array([255, threshold, 255])
     mask = cv2.inRange(frame_rgb, magenta_lower, magenta_upper)
-    return np.sum(mask) > 0
+
+    if display and np.sum(mask) > 0:
+        mask_expanded = np.expand_dims(mask, axis=-1) / 255 # Normalize to ensure it's a mask of 0s and 1s.
+        result_image = frame_rgb * mask_expanded  # Apply mask
+
+        # Convert result back to BGR for displaying with OpenCV
+        result_image_bgr = cv2.cvtColor(result_image.astype(np.uint8), cv2.COLOR_RGB2BGR)
+        cv2.imshow("Magenta pixels in frame", result_image_bgr)
+
+        cv2.waitKey(50)
+        cv2.destroyAllWindows()   
+    return np.sum(mask) > 10000
 
 def extract_audio_from_video(input_video_path, output_audio_path):
     cmd = [
@@ -68,14 +80,13 @@ def process_video_segments(cap, fps, frames_per_segment):
 
         if is_magenta_present(frame):
             if should_save_segment(segment_start_frame, current_segment_frames, frames_per_segment):
-                handle_video_segment(fps, current_segment_frames, video_index, frame_count, frame_size)
+                handle_video_segment(fps, current_segment_frames, frames_per_segment, video_index, frame_count, frame_size)
                 video_index, video_count = update_indexes(video_index, video_count)
             segment_start_frame, current_segment_frames = reset_segment()
         else:
             segment_start_frame, current_segment_frames = update_segment(frame_count, current_segment_frames, frame, segment_start_frame)
-
-            if segment_ends(frame_count, segment_start_frame, frames_per_segment):
-                handle_video_segment(fps, current_segment_frames, video_index, frame_count, frame_size)
+            if segment_ends(current_segment_frames, frames_per_segment):
+                handle_video_segment(fps, current_segment_frames, frames_per_segment, video_index, frame_count, frame_size)
                 segment_start_frame, current_segment_frames = start_new_segment(frame_count, current_segment_frames)
                 video_index, video_count = update_indexes(video_index, video_count)
 
@@ -83,11 +94,14 @@ def process_video_segments(cap, fps, frames_per_segment):
 
 def should_save_segment(segment_start_frame, current_segment_frames, frames_per_segment):
     """Determines if the current video segment should be saved."""
-    return segment_start_frame is not None and len(current_segment_frames) >= frames_per_segment
+    return segment_start_frame is not None and math.isclose(len(current_segment_frames), frames_per_segment, abs_tol=2.0)
 
-def handle_video_segment(fps, current_segment_frames, video_index, frame_count, frame_size):
+def handle_video_segment(fps, current_segment_frames, frames_per_segment, video_index, frame_count, frame_size):
     """Handles saving and processing of a video segment."""
     video_segment_path = f'Processing/Video/trimmed_video_{video_index}.mp4'
+    last_frame = current_segment_frames[-1]
+    while len(current_segment_frames) < frames_per_segment:
+        current_segment_frames.append(last_frame)
     save_video_segment(current_segment_frames, video_segment_path, fps, frame_size)
     if video_index % 2 == 0:
         process_audio_for_segment(frame_count, fps, video_index)
@@ -107,9 +121,9 @@ def update_segment(frame_count, current_segment_frames, frame, segment_start_fra
     current_segment_frames.append(frame)
     return segment_start_frame, current_segment_frames
 
-def segment_ends(frame_count, segment_start_frame, frames_per_segment):
+def segment_ends(current_segment_frames, frames_per_segment):
     """Checks if the current segment has reached its end."""
-    return frame_count - segment_start_frame >= frames_per_segment
+    return math.isclose(len(current_segment_frames), frames_per_segment, abs_tol=2.0)
 
 def start_new_segment(frame_count, current_segment_frames):
     """Starts a new segment after the previous one ends."""
