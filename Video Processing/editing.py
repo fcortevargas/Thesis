@@ -3,13 +3,14 @@ import subprocess
 import numpy as np
 import math
 
-def is_magenta_present(frame, threshold=110, display=False):
+def is_magenta_present(frame, threshold=110, min_pixels_per_cluster=80, display=False):
     """Check if there is a significant amount of magenta in the frame."""
     # Convert frame to RGB (OpenCV uses BGR by default)
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     magenta_lower = np.array([255 - threshold, 0, 255 - threshold])
     magenta_upper = np.array([255, threshold, 255])
     mask = cv2.inRange(frame_rgb, magenta_lower, magenta_upper)
+    # print(f"number of magenta pixels: {np.sum(mask)}")
 
     if display and np.sum(mask) > 0:
         mask_expanded = np.expand_dims(mask, axis=-1) / 255 # Normalize to ensure it's a mask of 0s and 1s.
@@ -19,9 +20,9 @@ def is_magenta_present(frame, threshold=110, display=False):
         result_image_bgr = cv2.cvtColor(result_image.astype(np.uint8), cv2.COLOR_RGB2BGR)
         cv2.imshow("Magenta pixels in frame", result_image_bgr)
 
-        cv2.waitKey(50)
+        cv2.waitKey(0)
         cv2.destroyAllWindows()   
-    return np.sum(mask) > 10000
+    return np.sum(mask) > 255 * min_pixels_per_cluster
 
 def extract_audio_from_video(input_video_path, output_audio_path):
     cmd = [
@@ -79,13 +80,20 @@ def process_video_segments(cap, fps, frames_per_segment):
         frame_size = (int(cap.get(3)), int(cap.get(4)))
 
         if is_magenta_present(frame):
+            # print("Magenta")
+            # print(len(current_segment_frames))
+            # print(frames_per_segment)
             if should_save_segment(segment_start_frame, current_segment_frames, frames_per_segment):
+                # input("Should save magenta")
                 handle_video_segment(fps, current_segment_frames, frames_per_segment, video_index, frame_count, frame_size)
                 video_index, video_count = update_indexes(video_index, video_count)
             segment_start_frame, current_segment_frames = reset_segment()
         else:
             segment_start_frame, current_segment_frames = update_segment(frame_count, current_segment_frames, frame, segment_start_frame)
+            # print(len(current_segment_frames))
+            # print(frames_per_segment)
             if segment_ends(current_segment_frames, frames_per_segment):
+                # input("Should save end of segment")
                 handle_video_segment(fps, current_segment_frames, frames_per_segment, video_index, frame_count, frame_size)
                 segment_start_frame, current_segment_frames = start_new_segment(frame_count, current_segment_frames)
                 video_index, video_count = update_indexes(video_index, video_count)
