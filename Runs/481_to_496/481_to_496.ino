@@ -357,6 +357,8 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
   while (!(getLastTime() > duration)) {
     _loop();
 
+    boolean isTurning = false;
+
     // If valid wander input is given
     if (doWander) {
       // Start executing after the given phase
@@ -367,16 +369,18 @@ void WanderBlinkBeep(double duration, boolean stayInBounds,
           int sensorReading = linefollower_2.readSensors();
 
           // Turn left if right sensor detects a white line
-          if ((0 ? (1 == 0 ? sensorReading == 0 : (sensorReading & 1) == 1)
+          if (!isTurning && (0 ? (1 == 0 ? sensorReading == 0 : (sensorReading & 1) == 1)
                   : (1 == 0 ? sensorReading == 3 : (sensorReading & 1) == 0))) {
+              isTurning = true;
               move(3, targetForwardSpeed / 100.0 * 255);
               _delay(lineTurnDuration);
               move(3, 0);
           }
 
           // Turn right if left sensor detects a white line
-          if ((0 ? (2 == 0 ? sensorReading == 0 : (sensorReading & 2) == 2)
+          if (!isTurning && (0 ? (2 == 0 ? sensorReading == 0 : (sensorReading & 2) == 2)
                   : (2 == 0 ? sensorReading == 3 : (sensorReading & 2) == 0))) {
+              isTurning = true;
               move(4, targetForwardSpeed / 100.0 * 255);
               _delay(lineTurnDuration);
               move(4, 0);
