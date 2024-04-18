@@ -45,4 +45,4 @@ def compress_videos_in_folder(input_folder, output_folder, target_size):
             compress_video(input_file_path, output_file_path, target_size)
 
 # Compress all videos in the 'input_videos' folder to the 'output_videos' folder with a target size of 15MB
-compress_videos_in_folder('../Videos/Processed/Attention/Side', '../Videos/Compressed/Attention/Side', 15 * 1000)
+compress_videos_in_folder('../../Videos/Processed/Examples/Side', '../../Videos/Compressed/Examples/Side', 15 * 1000)
