@@ -1,0 +1,9 @@
+.DS_store
+*.mp4
+*.aac
+[Ii]nput/
+[Ou]utput/
+[Vv]ideos/
+*.mp4
+*.MOV
+.venv/
