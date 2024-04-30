@@ -39,9 +39,9 @@ def extract_frames(video_path, output_folder, start_time, end_time, frame_rate=1
 # Example usage
 video_path = "input_video.mp4"
 output_folder = "frames"
-start_time = 10  # Start time in seconds
-end_time = 20    # End time in seconds
-frame_rate = 30   # Save every frame_rate-th frame (1 for every frame)
+start_time = 0  # Start time in seconds
+end_time = 5    # End time in seconds
+frame_rate = 1   # Save every frame_rate-th frame (1 for every frame)
 
 # Create the output folder if it doesn't exist
 if not os.path.exists(output_folder):

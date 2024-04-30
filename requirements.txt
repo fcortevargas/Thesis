@@ -1,6 +1,7 @@
 numpy
+opencv-python
 scipy
 seaborn
 pandas
 matplotlib
-ffmpeg
+ffmpeg-python
