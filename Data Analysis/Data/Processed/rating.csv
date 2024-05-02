@@ -1,0 +1,101 @@
+participant_id,video_id,joy,sadness,fear,anger,disgust,surprise,other,other_text,pleasure,arousal,dominance,appraisal
+5c791e24266f210012af518d,1,,1.0,1.0,,,2.0,,,4.0,3.0,3.0,i honestly dont know about this one
+5c791e24266f210012af518d,6,,4.0,,,,,,,1.0,1.0,2.0,it seemed like something had made the robot sad causing it to have low energy
+5c791e24266f210012af518d,59,,5.0,1.0,,,,,,1.0,1.0,1.0,it seems to be sad and maybe a little confused about what to do next?
+5c791e24266f210012af518d,61,,1.0,,1.0,1.0,,,,4.0,3.0,3.0,it seemed to be kinda all over the place
+5c791e24266f210012af518d,219,,,4.0,,,1.0,,,2.0,7.0,4.0,"it seems like something made the robot scared, it sounded panicked"
+5c791e24266f210012af518d,256,,,3.0,,,1.0,,,4.0,5.0,4.0,it looked like the robot was alert?
+5c791e24266f210012af518d,314,,4.0,,,,,,,2.0,1.0,1.0,it looked like something made the robot sad which made it have low energy
+5c791e24266f210012af518d,323,3.0,,,,,1.0,,,7.0,5.0,6.0,it seemd like something had made the robot happy causing it to sing a little tune
+5c791e24266f210012af518d,376,,2.0,1.0,,,,,,4.0,3.0,3.0,i dont know about this one either
+5c791e24266f210012af518d,512,4.0,,,,,,,,8.0,3.0,5.0,"it seemed happy, it was playing a calm music"
+5a631a73b9e3b50001a6ebd8,35,3.0,1.0,1.0,1.0,1.0,2.0,,,7.0,6.0,6.0,the robot seems content and jolly
+5a631a73b9e3b50001a6ebd8,76,2.0,1.0,2.0,1.0,1.0,2.0,,,5.0,5.0,4.0,the robot seems steady and controlled
+5a631a73b9e3b50001a6ebd8,108,2.0,1.0,1.0,1.0,1.0,1.0,,,5.0,5.0,4.0,the robot seems calm and controlled
+5a631a73b9e3b50001a6ebd8,165,1.0,1.0,1.0,1.0,1.0,1.0,,,4.0,4.0,4.0,the robot seems to be curious and busy
+5a631a73b9e3b50001a6ebd8,213,1.0,1.0,2.0,2.0,1.0,1.0,,,3.0,3.0,4.0,the robot seemed frustrated and fast
+5a631a73b9e3b50001a6ebd8,224,3.0,1.0,1.0,1.0,1.0,3.0,,,6.0,5.0,6.0,the robot seems happy and busy
+5a631a73b9e3b50001a6ebd8,343,1.0,2.0,2.0,2.0,2.0,1.0,,,4.0,4.0,3.0,the robot seems curious but happy
+5a631a73b9e3b50001a6ebd8,348,1.0,1.0,1.0,1.0,1.0,1.0,,,5.0,4.0,4.0,the robot seems to be content and steady 
+5a631a73b9e3b50001a6ebd8,374,2.0,1.0,1.0,1.0,1.0,2.0,,,4.0,3.0,4.0,the robot seems calm and contenet
+5a631a73b9e3b50001a6ebd8,392,1.0,1.0,2.0,2.0,2.0,1.0,,,3.0,3.0,3.0,the robot seems frustrated and anxious
+5eebc1fd5feed239a73d693d,2,,2.0,1.0,,,1.0,4.0,Erratic,5.0,6.0,4.0,"The robot's movements started off purposeful but then changed to cautious and unsure, so its movements/mood appeared erratic and inconsistent.."
+5eebc1fd5feed239a73d693d,42,3.0,1.0,1.0,,,1.0,3.0,Helpfulness,7.0,6.0,7.0,"The robot seemed to have a purpose, and to be trying to do something or achieve some kind of goal."
+5eebc1fd5feed239a73d693d,167,,3.0,1.0,,,1.0,4.0,Boredom,3.0,3.0,3.0,"The robot seemed aimless and directionless, stopping and starting without actually changing direction so it seemed bored."
+5eebc1fd5feed239a73d693d,176,,1.0,1.0,,,1.0,,,6.0,6.0,6.0,"The robt seems purposeful, moving in a focused way and making slight adjustments to its path in a measured, corrective way."
+5eebc1fd5feed239a73d693d,202,1.0,4.0,2.0,,,2.0,,,5.0,4.0,4.0,"The robot seemed to have low energy because it moved slowly and seemed to be aimless. The sound was unpleasant to listen to, melancholy and off key."
+5eebc1fd5feed239a73d693d,217,,3.0,4.0,2.0,,1.0,4.0,Restlessness,4.0,7.0,3.0,"The robot seemed unsure of itself and it's direction, and appeared confused and possibly a bit scared to proceed on its route."
+5eebc1fd5feed239a73d693d,263,,2.0,,4.0,,1.0,,,2.0,3.0,4.0,"The robot seemed bored and directionless, but also a bit annoyed about something, like it had been asked to do something it didn't want to do."
+5eebc1fd5feed239a73d693d,308,,3.0,3.0,2.0,,1.0,,,3.0,4.0,6.0,It was purposeful and intent on it's intended direction but seemed distracted and possibly a bit resentful of its task.
+5eebc1fd5feed239a73d693d,317,,3.0,2.0,3.0,,3.0,,,3.0,5.0,6.0,"The robot was very unsure of itself, and was hesitant in its pathway."
+5eebc1fd5feed239a73d693d,353,2.0,3.0,2.0,2.0,,3.0,,,4.0,6.0,6.0,"The robot seemed confused and without much purpose, hesitant and changing its course of direction regularly. It didn't know what it was meant to do."
+6089aa8120d7418a70f3eba7,100,1.0,3.0,1.0,4.0,2.0,1.0,5.0,assertiveness,4.0,7.0,7.0,"This robot seemed to be disappointed in something that happened and attempting to fix mistakes by being sure of its own actions, when doing them."
+6089aa8120d7418a70f3eba7,133,2.0,3.0,5.0,,,5.0,4.0,Anxiety,3.0,7.0,5.0,"This time the robot seemed to be anxious about something that happened, perhaps that was not expected and now clueless of what to do."
+6089aa8120d7418a70f3eba7,152,2.0,1.0,1.0,4.0,4.0,3.0,,,2.0,5.0,4.0,"The robot seemed to be doing an unpleasant task or maybe like a chief of a company, having to scold their employees. Disappointment."
+6089aa8120d7418a70f3eba7,196,2.0,4.0,2.0,,1.0,3.0,,,3.0,3.0,2.0,The robot seemed to be sad about something and clueless of where to go.
+6089aa8120d7418a70f3eba7,211,3.0,,3.0,1.0,,2.0,5.0,confusion,6.0,6.0,3.0,The robot seemed to move like he lost something. The blue light made it seem like it was inoffensive.
+6089aa8120d7418a70f3eba7,388,4.0,,,,,,5.0,Mindlessness,7.0,4.0,4.0,The robot seemed to be doing a pleasurable activity and deriving joy and thoughtlessness out of the actions.
+6089aa8120d7418a70f3eba7,424,2.0,4.0,5.0,,1.0,3.0,4.0,anxiousness,2.0,7.0,1.0,"The robot seemed to be quite shaken by something, perhaps something bad happened and it felt nervous and afraid. Anxious is the best description."
+6089aa8120d7418a70f3eba7,464,1.0,1.0,3.0,3.0,4.0,2.0,,,4.0,5.0,5.0,The robot seemed to be looking for something and did not seem very happy about the situation.
+6089aa8120d7418a70f3eba7,469,2.0,1.0,1.0,3.0,3.0,4.0,,,5.0,5.0,5.0,The robot seemed to be surprised by something that happened in an unpleasant way.
+6089aa8120d7418a70f3eba7,475,3.0,1.0,,,,3.0,,,6.0,3.0,3.0,The robot here seemed to just be doing routine tasks or a monotonous activity that you don't really think when you do. Not much emotion.
+63fc7ac4c0ba10b71a25a63d,49,,2.0,3.0,2.0,1.0,3.0,4.0,Agitation,3.0,7.0,5.0,"The robot seemed agitated and unsure of its next actions, confused about its situation. "
+63fc7ac4c0ba10b71a25a63d,115,,3.0,2.0,1.0,,2.0,4.0,Agitated,1.0,7.0,3.0,"The robot seemed to be agitated, unsure of its actions and the next actions to take. Lacking in confidence. "
+63fc7ac4c0ba10b71a25a63d,239,1.0,3.0,2.0,2.0,2.0,3.0,4.0,Confused,2.0,5.0,3.0,"The robot seemed unsure of its actions, confused caused by the uncertainty of its situation.."
+63fc7ac4c0ba10b71a25a63d,274,1.0,1.0,1.0,1.0,1.0,1.0,4.0,Thoughtful,5.0,1.0,4.0,"The robot seemed to display a thoughtful approach to the task. It methodically travelled to each side, as if analysing its situation. "
+63fc7ac4c0ba10b71a25a63d,304,4.0,1.0,1.0,1.0,1.0,3.0,4.0,Calmness,7.0,3.0,5.0,The robot seemed to be calm and unbothered by the limitations of its area. It seemed to have a happy go lucky attitude. 
+63fc7ac4c0ba10b71a25a63d,344,1.0,2.0,4.0,4.0,1.0,3.0,4.0,Confusion,1.0,7.0,3.0,"The robot seemed confused, unable to ascertain its surroundings and going back and forth to the same sections. "
+63fc7ac4c0ba10b71a25a63d,346,3.0,1.0,1.0,1.0,,2.0,4.0,Excitement,6.0,5.0,5.0,The robot seemed almost excited to be exploring the area. The high pitched sounds gave the impression of excitement.
+63fc7ac4c0ba10b71a25a63d,409,,2.0,3.0,3.0,,3.0,3.0,Anticipation,3.0,5.0,3.0,The robot seemed to be anticipating elements yet unable to decide where they are. 
+63fc7ac4c0ba10b71a25a63d,423,3.0,1.0,,1.0,1.0,1.0,4.0,Calmness,6.0,3.0,5.0,The robot seemed to be calm and measured in its approach. It was methodical. 
+63fc7ac4c0ba10b71a25a63d,458,1.0,3.0,3.0,2.0,,1.0,3.0,Annoyance,2.0,5.0,3.0,"The robot seemed uneasy, confused and tentative. Its actions were erratic."
+5e58436ebdccf5057ddd9190,30,,,,,,,,,4.0,4.0,5.0,"The robot makes precise little adjustments to its movement and it is reflected in the singsong noise it makes, it's thinking out loud"
+5e58436ebdccf5057ddd9190,80,2.0,,,,,,3.0,Resolution,5.0,5.0,6.0,"The robot is self-controlled and makes a serious, business like sound.  It moves with purpose and intent.  "
+5e58436ebdccf5057ddd9190,128,,,1.0,2.0,3.0,,4.0,Frustration,3.0,7.0,7.0,"This robot is pacing the floor with repetitive movements and rapid beeping, conveying a sense of annoyance and impatience - not happy"
+5e58436ebdccf5057ddd9190,148,3.0,1.0,,,,2.0,2.0,Agitation,7.0,7.0,6.0,"The robot is carefree and if it was a human it would be whistling.  It meanders about happily, it seems content but slightly hyperactive"
+5e58436ebdccf5057ddd9190,180,1.0,1.0,1.0,,1.0,,2.0,Anxiety,4.0,4.0,4.0,"This robot is trying to concentrate on its work, making repetitive sounds to help it perform well.  The movements are careful and measured"
+5e58436ebdccf5057ddd9190,207,1.0,,,,,,4.0,Frustration,3.0,5.0,5.0,This robot shows energy through its sound and eyes but seems frustrated as its movements do not match these - it wants to do more
+5e58436ebdccf5057ddd9190,369,1.0,1.0,,,,3.0,3.0,Confusion,4.0,6.0,5.0,"The robot moves purposefully but doesn't seem to know where to go, the staccato beeps and flashing eyes reflecting confusion and energy"
+5e58436ebdccf5057ddd9190,379,,2.0,,,,2.0,3.0,Distress,3.0,7.0,5.0,"This robot shows distress by short jerky movements and a constant high pitched beep, it seems panicked and without purpose"
+5e58436ebdccf5057ddd9190,382,2.0,,,,,,3.0,Contentedness,5.0,5.0,5.0,"The robot is content and beeps a contented tune, it moves in a measured and purposeful way "
+5e58436ebdccf5057ddd9190,428,3.0,,,,,1.0,3.0,Contentment,6.0,6.0,4.0,"This robot is content and beeps in a random cheerful way, it is relaxed and free to meander"
+656cbb93ba4ac7120453d910,4,2.0,1.0,1.0,,,3.0,4.0,Confusion,7.0,9.0,5.0,The robot seemed confused as it looked around going up and down while beeping.
+656cbb93ba4ac7120453d910,45,5.0,,,,,4.0,5.0,Curiosity,9.0,9.0,6.0,"The robot seemed curious about its surroundings and moved up and down, in a joyful way as its lights turned blue and beeped happily."
+656cbb93ba4ac7120453d910,46,3.0,,,,,1.0,5.0,Calm,8.0,9.0,7.0,"The robot seemed very calm and moving slowly, I sensed a presence of peace and calmness as it explored its surrounding."
+656cbb93ba4ac7120453d910,71,,1.0,1.0,,1.0,,,,5.0,7.0,7.0,The robot seemed somewhat disturbed as it beeped. It had blue lights and looked as if it had a hard time moving.
+656cbb93ba4ac7120453d910,79,4.0,,,,,4.0,,,9.0,7.0,5.0,"The robot beeped very happy and moved around smoothly and curious, exploring his enviroment."
+656cbb93ba4ac7120453d910,319,1.0,2.0,4.0,2.0,1.0,,,,3.0,7.0,5.0,"The robot had red lights and seemed upset, as it beeped and moved around slowly."
+656cbb93ba4ac7120453d910,341,,1.0,4.0,,1.0,2.0,5.0,Confusion,2.0,9.0,5.0,"The robot was very confused and was for some reason not able to move away from the right side, it kept making turns and seemed upset."
+656cbb93ba4ac7120453d910,362,3.0,,,,,1.0,,,7.0,7.0,5.0,The robot moved slowly around but overall seemed normal and beeped happily.
+656cbb93ba4ac7120453d910,367,,2.0,1.0,,1.0,2.0,5.0,Lost,2.0,7.0,4.0,The robot seemed very lost and unsure on what to do as it looked around.
+656cbb93ba4ac7120453d910,425,3.0,1.0,,,,3.0,4.0,Confusion,5.0,6.0,5.0,"The robot moved around, seeming somewhat confused but then again also a bit excited? It moved around as if, it was unsure where to go to."
+5b09da13641b1200010eab05,25,4.0,,,,,,,,8.0,9.0,7.0,"The robot was moving excitedly, like when dogs get 'zoomies'."
+5b09da13641b1200010eab05,75,4.0,,,,,,,,7.0,6.0,6.0,The robot is moving in a left-right pattern like a dance.
+5b09da13641b1200010eab05,98,,2.0,,,,,3.0,Bored,5.0,2.0,3.0,The robot is moving at a slow and controlled pace like it's bored.
+5b09da13641b1200010eab05,131,3.0,,,,,,,,7.0,5.0,5.0,The robot seems to be in a good relaxed mood with controlled movement.
+5b09da13641b1200010eab05,184,,,4.0,,,,,,2.0,6.0,6.0,The robot moved in a way that had of feeling of nervousness and panic.
+5b09da13641b1200010eab05,258,,,,,,,3.0,Focus,5.0,6.0,7.0,The robot is moving at a controlled pace like it's focused on a task.
+5b09da13641b1200010eab05,370,,3.0,,,,,,,3.0,3.0,3.0,The robot is moving at a slow pace without any extravagant movements.
+5b09da13641b1200010eab05,378,,,,,,,3.0,Relaxed,6.0,4.0,6.0,The robot is moving in a slow and carefree manner.
+5b09da13641b1200010eab05,467,,3.0,3.0,,,,3.0,Confusion,3.0,6.0,6.0,The robot moves in a way to conveys it isn't sure what to do.
+5b09da13641b1200010eab05,470,,1.0,,1.0,,,3.0,Anxiety,3.0,4.0,5.0,The robot is moving like it's pacing back and forth in an anxious manner.
+648ddf3aeff70c1f26ff2652,14,5.0,1.0,2.0,2.0,1.0,1.0,,,8.0,7.0,6.0,The robot is systematic and coordinated
+648ddf3aeff70c1f26ff2652,118,4.0,1.0,3.0,3.0,2.0,3.0,,,7.0,6.0,6.0,The robot is precise and thoughtful making the least amount of noise
+648ddf3aeff70c1f26ff2652,122,3.0,2.0,3.0,1.0,2.0,1.0,,,7.0,3.0,2.0,The robot is calculative and mindful
+648ddf3aeff70c1f26ff2652,161,1.0,2.0,5.0,1.0,2.0,4.0,,,4.0,3.0,4.0,The robot is confused and indecisive
+648ddf3aeff70c1f26ff2652,183,1.0,3.0,4.0,1.0,2.0,3.0,,,5.0,2.0,3.0,The robot showed mild behavior and made slow decisions
+648ddf3aeff70c1f26ff2652,216,5.0,1.0,1.0,2.0,2.0,4.0,,,8.0,7.0,6.0,The robot is quick and making fast reactions
+648ddf3aeff70c1f26ff2652,330,3.0,3.0,4.0,1.0,2.0,4.0,,,3.0,4.0,2.0,"The robot is unsure, slow and lazy in approach"
+648ddf3aeff70c1f26ff2652,465,2.0,1.0,4.0,3.0,2.0,3.0,,,3.0,3.0,4.0,The robot seems to choose between multiple options and hence a little out of focus
+648ddf3aeff70c1f26ff2652,472,2.0,,4.0,2.0,1.0,3.0,,,6.0,7.0,4.0,It is slow in analyzing and taking longer paths
+648ddf3aeff70c1f26ff2652,474,4.0,2.0,1.0,1.0,1.0,2.0,,,4.0,3.0,2.0,It is thoughtful and conscious of its approach
+60089c477baa6b3fba6dbe80,15,1.0,2.0,4.0,1.0,1.0,4.0,,,3.0,3.0,2.0,The robot moved cautiously like it was a bit scared but got there in the end.
+60089c477baa6b3fba6dbe80,16,3.0,1.0,1.0,1.0,1.0,3.0,,,7.0,7.0,7.0,Robot was a confident and determined but a bit manic 
+60089c477baa6b3fba6dbe80,94,2.0,3.0,2.0,1.0,,1.0,,,5.0,3.0,3.0,The robot was calm and moving gently this time. The colour blue seems to signify calmness.
+60089c477baa6b3fba6dbe80,113,2.0,1.0,4.0,3.0,,3.0,5.0,Manic,5.0,7.0,5.0,The robot seemed a bit manic and confused and a bit irritable.
+60089c477baa6b3fba6dbe80,192,2.0,,1.0,1.0,,1.0,,,7.0,7.0,5.0,The robot was self-confident and looked like it knew where to go and what to do and did it very neatly.
+60089c477baa6b3fba6dbe80,267,1.0,1.0,3.0,3.0,,3.0,,,3.0,3.0,5.0,The robot was a bit more irritable and fearful this time. It seemed stressed and looked like it did not know what to do and was shaking its head. 
+60089c477baa6b3fba6dbe80,322,1.0,1.0,4.0,1.0,1.0,3.0,,,1.0,1.0,1.0,The robot looked depressed and was just driving aimlessly without purpose.
+60089c477baa6b3fba6dbe80,334,3.0,1.0,1.0,1.0,,3.0,4.0,Happy,7.0,7.0,5.0,The robot seemed confident but whimsical and without direction. 
+60089c477baa6b3fba6dbe80,383,3.0,1.0,1.0,1.0,1.0,1.0,4.0,Confident,7.0,7.0,6.0,The robot seemed calm and in a good mood.
+60089c477baa6b3fba6dbe80,407,1.0,4.0,4.0,1.0,,1.0,,,1.0,1.0,3.0,The robot seemed a bit depressed and unsure signified by shaking itself.

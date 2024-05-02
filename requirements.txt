@@ -3,5 +3,6 @@ opencv-python
 scipy
 seaborn
 pandas
+pandasql
 matplotlib
 ffmpeg-python
