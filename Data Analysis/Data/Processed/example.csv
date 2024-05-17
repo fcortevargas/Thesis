@@ -56,3 +56,150 @@ participant_id,example_joy,example_sadness,example_fear,example_anger,example_di
 5e5afa0fab6bfd2f2bb4b250,,2.0,4.0,3.0,1.0,,5.0,Anxiety,1.0,9.0,3.0,"It looked to me like the robot was panicking, searching for help, he seemed very distressed"
 63d14e00e845bfe43cf87708,1.0,3.0,,,2.0,,2.0,confused,5.0,6.0,5.0,The robot moves fast and looks like it is confsed
 5fb45df6ce203a13f34ac0af,,4.0,3.0,4.0,2.0,2.0,,,3.0,6.0,4.0,"The robot seems upset and confused, that is why it's lights are red and it is moving about sporadically."
+63407ac64e6e54d2bbfb6a5a,3.0,1.0,2.0,2.0,1.0,4.0,,,5.0,7.0,3.0,"I think the robot looks confused, about where to go next. Maybe slightly agitated."
+65be693353421206e0db1565,3.0,1.0,,1.0,,3.0,,,7.0,7.0,5.0,The robot seems suprise and is moving around making low level sounds
+5ea597859b1fb6594ac2b470,,3.0,1.0,2.0,,,,,2.0,7.0,5.0,"The robot seems like it is either upset or annoyed. It doesn't know what to do with itself, it seems to move in a confused manner."
+65b11897c8192342e57e9787,2.0,1.0,3.0,1.0,1.0,1.0,,,4.0,4.0,4.0,The robot looks like it is panicking.
+5fdb2a32414cb63975e0d9c7,2.0,,3.0,4.0,,3.0,,,3.0,7.0,6.0,"The robot seems to be upset, maybe because it doesn't know where to go. It has flashing amber lights and makes loud noises "
+6428caa789609d52890a3c99,,3.0,4.0,,,4.0,4.0,Panic,2.0,9.0,2.0,"It seems like the robot is in distress, it's been placed in a situation it can't get out of. Or distressed about having lost it's kids."
+5962f252b692380001417ab9,,,,,,,3.0,It looked irritated,2.0,6.0,3.0,It looked irritated and frustrated as if it wanted to go somewhere but was getting lost or waiting for instruction.
+642b4dcc167bfad1e097543d,1.0,1.0,4.0,2.0,1.0,3.0,,,2.0,9.0,2.0,"The Robot looks like it ended up in a place it does not know and feels panic because of that, and is going in different directions fast."
+60fd9b084a91f75f655da04f,3.0,2.0,1.0,4.0,1.0,2.0,,,4.0,7.0,7.0,The robot looked like it had this rage attached to it and wanted to take it out somehow by the constant erratic movements
+5ea6df209d688606829ac644,2.0,,2.0,4.0,,4.0,4.0,Confusion,3.0,9.0,8.0,"The constant turning makes the robot look confused, maybe its constantly receiving new instructions or does not know what task to prioritise."
+5d945d41e5ce0a001347e2b5,,,,4.0,2.0,3.0,4.0,frantic,2.0,7.0,7.0,"The robot appeared angry and frantic, like it was trying to locate something important that had gone missing. "
+64971e71ba666687996c6072,1.0,2.0,2.0,3.0,2.0,1.0,,,3.0,7.0,7.0,A nervous breakdown after something has happened.
+596f003434773e0001fc0d28,2.0,3.0,2.0,1.0,1.0,,4.0,Confusion,1.0,9.0,4.0,The robot looks like it is lost in its robot life and it doesn't know where to go.  That's why it keeps moving around in a senseless fashion.
+6160717242827a64a55d99ad,,,4.0,1.0,1.0,1.0,,,3.0,9.0,4.0,"It seemed quite anxious and agitated, like a mouse fleeing its pursuer"
+578e9a9bfa4465000113f154,4.0,1.0,2.0,1.0,1.0,1.0,,,7.0,7.0,2.0,The robot looks like its being free and enjoying the fact that it is freely moving
+650f26eae8a7cf504ba29660,,1.0,2.0,5.0,3.0,3.0,,,2.0,9.0,9.0,The robot looks angry as it is moving around erratically and has red lights
+64e6892cc9dc5cd2ca94bb0a,5.0,1.0,1.0,2.0,1.0,4.0,5.0,excitement ,6.0,9.0,2.0,"The robot was going from edge to edge excited like a puppy, but it got disappointed each time it had to turn around."
+640105daa923d3f5f2669039,3.0,2.0,4.0,3.0,2.0,3.0,,,4.0,9.0,3.0,The robot looks like it is desperate to get a task done but is unsure of where how and why.
+609140cea1442672dd2141d7,,,,,,,,,4.0,1.0,2.0,"The robot seems confused and not sure where it should go next, in what direction"
+5f5b4aa99a3ef626581a1473,1.0,3.0,2.0,5.0,4.0,3.0,5.0,Frustration,5.0,9.0,9.0,"The robot seemed angry, moving fast and frantically, with red eyes and loud beeps"
+5e6473fbc15dbe1f71eea95b,,3.0,3.0,5.0,4.0,4.0,4.0,frustration,1.0,9.0,8.0,It looks like the robot is angry about something and is frustrated at what happened. The robot seems to be complaining.
+5da74e9437d4210016492810,2.0,3.0,1.0,1.0,3.0,4.0,,,3.0,9.0,3.0,The robot seems surprised that it can't find its way out of the box..
+5e29fd5f2bec3b065e9a729e,,,4.0,,,4.0,,,3.0,9.0,7.0,"Maybe something unexpected happened to the robot, it seems frantic in a search for solutions, so it is moving fast and beeping loudly."
+5aea88ec1aff900001cc0e55,,2.0,4.0,2.0,,4.0,4.0,anxiety,3.0,9.0,3.0,"The robot seems confused, and anxious. It is moving very quickly and changing directions constantly, as if it doesn't know where to go or what to do"
+65be49c47056d13e2b2fa4b6,,,1.0,5.0,4.0,1.0,,,1.0,9.0,7.0,The robot appears to be very angry from the movement pattern and the red light
+5c4d8d706b23ab0001a34af2,2.0,,2.0,,,,3.0,,6.0,7.0,5.0,"The robot looks busy, like it is searching for something. "
+65a04bff3f91fc3cf7f3991b,1.0,5.0,5.0,5.0,4.0,4.0,4.0,Disturbed,1.0,9.0,7.0,"The robot seems frustrated and afraid, it looks like it has lost its signal and trying so hard to figure it out by moving fast and beeping loudly."
+5bb0df0871e1b2000176bfc2,1.0,4.0,5.0,4.0,,3.0,,,2.0,7.0,3.0,"It seemed panicked, moving quickly trying to find something, but without success."
+581ccd016c73180001fa5b2a,2.0,2.0,1.0,5.0,4.0,2.0,,,3.0,9.0,7.0,The robot looks annoyed and wants to take revenge on someone
+5b97f2375612b30001acc4c9,3.0,1.0,4.0,2.0,1.0,3.0,,,7.0,9.0,6.0,"The robot looks scared, afraid moving quite frantic"
+61698a8779cd6c1922b2a204,3.0,1.0,4.0,4.0,,3.0,4.0,frantic,5.0,9.0,9.0,The robot seems frantic and panicky like it's looking for something  its lost..fast movements and beeping reflect this 
+654676d73282e9e8d26d129f,2.0,1.0,4.0,3.0,1.0,2.0,,,3.0,9.0,5.0,"The robot seems to be startled, confused and maybe a bit scared. Its movement seemed frantic. "
+64401708880c30ec28b9aef4,1.0,3.0,4.0,5.0,3.0,3.0,4.0,desperation,1.0,6.0,7.0,The robot looks like it is lost or has lost a friend. and is either searching to find them or somewhere! 
+60fd310fff5b2600c9d95554,3.0,,3.0,1.0,1.0,4.0,4.0,smart,7.0,9.0,9.0,The robot looks like it's confused that is why it is moving slowly with the dim lights and alert sound.
+6078b85e024d1d094113c3aa,,,4.0,4.0,2.0,4.0,,,2.0,7.0,8.0,It's freaking out. Goin nuts. Bananas. Bonkers
+629f6b8c65fcae219e245284,2.0,1.0,4.0,3.0,1.0,5.0,,,3.0,9.0,1.0,"The robot looked like it was trying to escape something, it had very chaotic movements"
+637545d6428d85daeedc3df5,,,3.0,3.0,,1.0,,,5.0,7.0,3.0,The robot looks lost and is trying to find a way out. It looks confused and a bit scared
+6229dc51dff340226697778e,1.0,1.0,3.0,,1.0,2.0,4.0,frustraion,3.0,7.0,5.0,the robot seemed confused and didn't know which way to turn.
+5ae9cde00335e200019e9eed,2.0,1.0,,2.0,,1.0,,,3.0,7.0,3.0,The robot looks frustrated like it cant figure out where to go next and it beeps in annoyance whenever it gets it wrong 
+5696b105eaa915000b8bd77c,,,3.0,1.0,,2.0,,,2.0,5.0,3.0,"It seemed like the robot was searching for something but was unable to find it, and it seemed to experience some distress because of this."
+62c6ad01d7ad711abdf2eb4c,,,3.0,5.0,,,,,3.0,9.0,5.0,"The robot seemed anxious, like it had lost something and was looking for it"
+5fb551ccab996500099ab1aa,,,4.0,,,,,,1.0,9.0,3.0,"The robot is moving very fast, as if something has happened and now it s afraid and does not know what to do. Its like its panicked for some reason."
+60375d67dde85cad87f3c99d,1.0,3.0,2.0,4.0,,,5.0,Frantic,3.0,7.0,9.0,"It seemed very clear to me that the Robot, by its actions, was behaving in a frantic manner as if not quite sure what to do next."
+5c7b8c1237d77b00158b4e39,1.0,3.0,4.0,4.0,3.0,2.0,,,1.0,9.0,1.0,"the robot looks like he is lost angry and frustrated as well as in panic, the music is quiet hectic so is the robots fast movements. "
+60dc4e2299f89a7ca94b2c91,1.0,3.0,,2.0,,1.0,,,4.0,6.0,6.0,"Based on the video, the robot appears to be experiencing a moment of confusion and uncertainty."
+5b5f23420085cb0001872849,4.0,1.0,2.0,1.0,1.0,4.0,,,7.0,7.0,6.0,The robot seems like it has had a surprise causing it to move fast and crash into sides.
+636166e1694fe8d9ed77dd68,,,5.0,5.0,1.0,4.0,,,2.0,9.0,1.0,The robot looks like it is worried and scared as if it does not know what to do next ro where to go.
+6400e0dd862feacb579475a8,1.0,4.0,3.0,5.0,,,5.0,lost,1.0,4.0,3.0,"he was angry and then started to move around senseless, lost and looking for something to do"
+5c559af233ed050001dffa66,,3.0,4.0,4.0,4.0,5.0,,,1.0,9.0,7.0,"The robot seems very alert, and confused, maybe angry. It alsmost seems as if something unpleasant is invading its personal space and causing alarm. "
+64217d8202361ad4dbed3596,1.0,3.0,5.0,4.0,3.0,4.0,5.0,Anxiety,1.0,9.0,1.0,"The robot looks like it is confused, stressed and upset.  It's short rapid movements and red light seem to be expressing frustration."
+5b222aff59f9620001c109cb,4.0,2.0,3.0,2.0,1.0,3.0,,,7.0,9.0,2.0,The robot seemed interested of the environment and beeping a lot.
+5f392fae9168cc472f0468f6,,,2.0,4.0,,3.0,4.0,Ignorance,2.0,7.0,6.0,"The robot seems confused and angry, very anxious to escape but without any clear plan to achieve that. It aimlessly rushes around, changing tack ofte "
+566feba6b937e400052d33b2,,,2.0,3.0,,,,,5.0,7.0,6.0,Moves quickly around sometimes quite randomly possibly anger emotion.
+6562025a6e3331528cf8fb3d,,,,4.0,2.0,3.0,3.0,Confusion,3.0,7.0,5.0,The robot didn't receive direction for next and don't know what to do. It looked very upset and confused.
+5f8dec421f06451776393dc4,4.0,,,,,4.0,,,8.0,9.0,7.0,Robot seemed to be excited to move around making noises and trying not to pass the lines
+5b5df59dd113f600012de8e9,,,3.0,5.0,,2.0,,,1.0,9.0,8.0,"The robot's seemingly negative emotions and rapid movements may have been caused by a state of confusion, a defense mechanism, or an actual command."
+6501b789e3ddbc0a0b79b925,2.0,2.0,3.0,4.0,1.0,1.0,,,4.0,9.0,7.0,"The robot seems very frantic and in a very panic like state. They are flashing red and are moving in various random directions, having a crisis."
+6613a814a0c2d6cb21da8ef8,4.0,1.0,3.0,2.0,,4.0,,,7.0,6.0,4.0,The robot looks like it acts on the basis of the sounds that was inputted into it
+647869e6f69318bacc341d53,1.0,3.0,3.0,5.0,1.0,2.0,2.0,did not mean anything in here,7.0,7.0,7.0,angry and aggitated frustrated
+649cbefc9ac085131a41f626,,,4.0,3.0,,2.0,,,1.0,9.0,2.0,"Maybe the robot encountered something unexpected, it looks afraid and like it doesn't know what to do, running in all directions and beeping loudly."
+646bd812bf93129feeb5a3dc,3.0,,,,,3.0,,,5.0,1.0,4.0,it looked like the robot was having fun looking all around going from side to side it just seemed cool to me
+6413a4a1a6e064ffb173f1ce,4.0,1.0,2.0,2.0,,1.0,,,7.0,9.0,4.0,The robot seemed in high spirits like it was excited and jumping about making singing type noises.
+6609688e8e4fe9698ab13a66,1.0,1.0,4.0,3.0,2.0,3.0,,,2.0,7.0,5.0,It seemed to be very worried about something and made random exicted noises while the red eyes flashed.
+5dc5da21d999de45a504651b,,4.0,4.0,,,2.0,5.0,confusion,1.0,9.0,3.0,The robot looks confused like it is lost
+63fbf0e3b18cc14adc0dbfb6,4.0,2.0,2.0,2.0,2.0,3.0,3.0,anxiety,6.0,9.0,6.0,"Fairly joyful, care-free until driving into the corner when it became more anxious, beeping louder and faster and moving more erratically."
+66082366bf2c333472dfc339,3.0,3.0,5.0,5.0,3.0,3.0,4.0,Confusion,4.0,9.0,6.0,"The robot looked confused, angry and sad at the same time."
+65e8d383f3c7e1afd7b5c98f,,,,2.0,,,,,2.0,9.0,1.0,It looks as though the robot is frustrated that he cannot leave the confines of the white space in which he is contained.
+62682277645054f5802459b8,1.0,1.0,1.0,3.0,1.0,1.0,,,5.0,7.0,5.0,"Seems to be getting annoyed with itself, trying to find a way off the mat."
+5c5cad3e4ee81200018eafe2,,1.0,4.0,4.0,2.0,3.0,,,1.0,7.0,7.0,The robot looks angry by being contained as it tries to find escape routes.
+5f3e6a07e06e71069f919082,1.0,4.0,4.0,1.0,3.0,2.0,3.0,Frustration,5.0,9.0,6.0,"The robot seems frustrated, it keeps covering the same ground. The high pitched noises and red light also align with this. "
+63cd461c5f597e27b2a054fb,3.0,1.0,4.0,3.0,1.0,2.0,4.0,anxiety,3.0,6.0,5.0,"to me the robot seemed to be anxious, it was flitting between positions in an erratic manner as if searching for something"
+,1.0,2.0,3.0,4.0,3.0,2.0,,,2.0,7.0,8.0,aggressive and dominant behaviour
+660724a45eceb43b0c11aeb9,2.0,2.0,1.0,4.0,1.0,2.0,,,3.0,7.0,7.0,I believe the robot was in a state of anger as it moved really vigorously
+60b542b8fbb1a6a2678f5054,5.0,,,,,4.0,,,9.0,7.0,5.0,The robot looked like it was having fun and playing a game like chase or hide and seek
+650ee274aa4447ac435b7830,3.0,,,,,2.0,,,7.0,6.0,6.0,It looks like the robot was having fun wheeling around.
+5d76d2f7daf4bf00164d585b,,,4.0,3.0,,4.0,,,1.0,9.0,2.0,"The robot looks confused, like it is frantically trying to figure out where to go."
+5f6f7258aa7332501adb94f4,3.0,1.0,1.0,1.0,1.0,2.0,,,7.0,6.0,3.0,the robot seems happy and excited the lights are flashing and it seems excited and alert and keen to explore its surroundingsit seems to know what to 
+65c3a03ff621c50711765546,5.0,1.0,2.0,1.0,3.0,5.0,2.0,Calm,7.0,7.0,5.0,The robot was actually active from the way he was displaying itself.
+6612d0a9046c003fef7f5e16,1.0,3.0,1.0,5.0,1.0,1.0,,,1.0,9.0,5.0,i believe the feelings depicted where that of anger because of the swift movements of the robot
+59d9d9cd8fd07a0001842484,,1.0,2.0,4.0,3.0,1.0,,,2.0,9.0,4.0,"The robot appears frustrated and slightly confused. It's movements are fast and erratic. It stops to shakes it's ""head"" in anger"
+5f088ba29bf08d0b3885f726,,2.0,4.0,3.0,1.0,3.0,,,3.0,7.0,4.0,"Paniking , being chased, or like a person that suddenly has bees around them"
+61015f63f9a351d3171a0f98,1.0,1.0,4.0,4.0,4.0,2.0,,,3.0,7.0,6.0,"The robot seems on guard, as if its searching for contraband. It seems very alert. the red lights make it come across as alarmed and upset."
+65b876fb5cc28b62953115fc,1.0,1.0,2.0,4.0,4.0,3.0,,,2.0,9.0,7.0,"Seems upset about something and is looking to lash out. It is displaying these behaviours through the red flashes, sporadic movement, and deeper horn."
+5d68c8aa40524c00189e8ac2,,,,5.0,,3.0,,,3.0,7.0,9.0,It seems to be angry and looking for a way to vent its frustrations.
+5588b2bffdf99b7a7714efd1,,3.0,5.0,3.0,2.0,4.0,5.0,panic,1.0,9.0,2.0,"The robot moves like it is panicking and afraid, making lots of hesitant fast movements, and changing directions frequently as if it was confused"
+5780d9a1900cc80001d2d1c2,3.0,1.0,2.0,,,3.0,,,7.0,9.0,7.0,The robot seemed to want to escape but kept hitting the edge
+641384b3dffcf39ec42d3c23,,3.0,5.0,,,,,,3.0,7.0,1.0,"Looksa to be in a panic, moving erratically back and forth as though looking for a way out"
+657b91830c807b69681bf0ef,,,3.0,,,4.0,4.0,Confusion,5.0,7.0,4.0,The robot looks confused as it is beeping red and orange while being unsure whether to turn left and right.
+65c349313a148edd8311e6a6,5.0,,5.0,,5.0,5.0,5.0,na,7.0,6.0,5.0,"The robot seems like it is maybe enjoying a peaceful moment, which leaves it relaxed and content, swaying gently and making calming sounds.  "
+6508518b906002118153f087,4.0,1.0,4.0,2.0,1.0,3.0,,,7.0,9.0,1.0,"The robot seems like its franticly running around and searching for something. It is difficult to tell whether it is fearful or happy, or maybe both"
+60d6f47f9ee6d5613df44943,,4.0,4.0,3.0,,2.0,,,2.0,9.0,4.0,The robot seems a bit manic like its been scared or upset by something and doesn't know what its doing. 
+5fa407c0cf3d4f07e93fb5a0,1.0,3.0,4.0,5.0,3.0,1.0,,,2.0,7.0,7.0,"The Robot seemed frustated and a little lost, causing it to move irratically with red light and loud fast beeping."
+6107ca62e9040e3847a1bd17,1.0,1.0,4.0,4.0,4.0,4.0,,,1.0,9.0,5.0,The flashing red lights and corresponding movements and noises insinuates that they are angry
+5bfece626e6cd80001beb6c0,,,,,,,3.0,frustration,4.0,9.0,5.0,The robot appears frustrated while trying to figure a way out of the box
+57b889c1e163b10001abf340,3.0,,,,,,4.0,excited,7.0,9.0,6.0,"Appears excited, which could be in a positive or negative way, but I assumed positive."
+65cf8daaaf679c7816f3a1b4,,,,4.0,3.0,,,,5.0,9.0,8.0,"he was an angry little robot, frustrated but not afraid, just mad about having to be a tiny robot in a box who wanted to leave"
+644a4cace89b63c509a1e3df,4.0,,2.0,,,3.0,,,5.0,4.0,4.0,the robot was not sure where to go but it did not seem worried
+59e7eb5d62637600014a7db2,2.0,,,1.0,1.0,1.0,,,3.0,7.0,6.0,"The robot looks as if it is trying to figure out where it should go next, but is having trouble deciding where to go."
+5f4fa43ff313fc07706bb0fe,3.0,,1.0,,,4.0,,,7.0,9.0,3.0,"The robot seem to be inquisitive, it's movements are jerky and it is making curious sounds as if it's eager to investigate it's surroundings. "
+5f2475017bdf7404b8215eef,,3.0,2.0,5.0,,2.0,,,3.0,6.0,4.0,It seems to be angry like it doesn't really understand how to move correctly
+5d29a65b5b3b1f001aaaf6e3,1.0,3.0,4.0,5.0,2.0,1.0,,,1.0,9.0,9.0,The robot seemed to be charging around angrily. The robot seemed to be distressed.
+63ef938aea545fb9bd19a591,,2.0,1.0,5.0,2.0,,,,1.0,9.0,8.0,I felt the robot was angry at something
+5dbf5fe16849043f135aa2c0,3.0,1.0,1.0,2.0,1.0,2.0,,,5.0,7.0,5.0,"The robot looks like it is a little confused, trying to find the boundaries of the space in which it is operating. "
+609a9aae2e53d2c195a1bba6,1.0,,3.0,5.0,,,,,9.0,9.0,9.0,"the theme tune reminds me of space invaders, the robot appeared to be angerly shooting when flashing red then calmer on green but still a little frant"
+5a7659fd8fe2dc00010573be,4.0,1.0,3.0,2.0,2.0,3.0,2.0,confusion,6.0,5.0,7.0,"Red light indicates it's awareness and alertness, also it seems to be bit confused, hitting the edges of the field and spinning lots"
+65b245ff936ba04dd1bfbe42,2.0,,,,,1.0,,,8.0,9.0,7.0,The robot seems very active and enjoying the space its in and also ensuring it doesn't move beyond the black borders
+637fcee60a8378c1c3a65898,,1.0,4.0,1.0,1.0,2.0,4.0,anxious,2.0,7.0,3.0,The robot seems anxious and is unsure of its next steps or what happens next. 
+637e1c1af194c6e63e8ff286,3.0,1.0,1.0,1.0,1.0,2.0,,,5.0,1.0,3.0,the robot seems slow moving and confused
+654983b42d3870e2a88c6fe4,1.0,,,,,1.0,,,5.0,6.0,4.0,the robot looks confused and ıt looks lıke ıt doesnt know what to do
+61474f07f4cfbc50cb3b2f1e,2.0,,3.0,,,4.0,,,6.0,7.0,5.0,The robot seemed hyperactive and confused as it kept changing directions very jerkily to prevent itself from falling off the table.
+634842a70942fb4ba6aa1e88,2.0,,2.0,,,2.0,,,4.0,7.0,1.0,The colour of lights & tone of sound made it sound more joyful when in the centre of the area & more distressed when near to the edges of the area
+63d3fb730f03adf8b4a28a37,3.0,3.0,3.0,1.0,1.0,4.0,4.0,curiosity,6.0,6.0,4.0,The robot looks curious about exploring the world around it and surprised about what it finds.
+63ee9abfa262bea95766dd9c,2.0,2.0,2.0,4.0,3.0,4.0,,,5.0,5.0,4.0,the robot looked like it was surprised and lost and didnt know what to do or where to go
+660d6a1f4a7f1337de235daa,,,,,,2.0,,,5.0,5.0,2.0,"The robot just seemed a bit lost but not too bothered , I would say."
+59660b07e549e90001e44daa,,,,,,,,,1.0,9.0,1.0,The robot is constantly moving and seems disorientated
+64860c8cfd693e6467ad6d15,5.0,,,,,4.0,5.0,interesting,9.0,6.0,7.0,"The robot was acting under a remote control. It lacks full autonomy of its own, it was moving from one end to the other probably because someone was c"
+,1.0,,4.0,3.0,,4.0,,,2.0,9.0,2.0,"The robot looks like it could be scared of something, which could be why it's movements are very fast and scattered."
+6447a21bdb359b012f49465b,,1.0,2.0,5.0,4.0,1.0,4.0,Confused,1.0,9.0,7.0,"The robot seemed worked up and angry, it was moving erratically whilst making noises and flashes red eyes. Maybe something happened and it's reacting"
+58acbfacea3d11000170e99a,,1.0,3.0,4.0,3.0,3.0,,,3.0,7.0,5.0,It seems the robot is angry and confused as it is moving and turning pretty fast and not getting something that it wants.
+62f3b543dce069211e8e982c,,1.0,2.0,5.0,,3.0,,,2.0,7.0,6.0,The robot appeared to be angry at being stymied in its movements somehow. It looked like it was prevented from going where it wanted to go.
+5f280cc370354e08a8f2895c,1.0,3.0,3.0,4.0,1.0,1.0,,,2.0,9.0,7.0,Maybe an unexpected event has left the robot agitated. That's why it is moving fast and beeping rapidly.
+6234a3d5cd2f63c705e5842d,2.0,3.0,4.0,3.0,2.0,3.0,4.0,Confusion,2.0,9.0,5.0,The robot looks confused and lost - it is trying to find a way out of a tricky situation
+651ae29f9334283dc9199467,1.0,4.0,5.0,4.0,2.0,4.0,5.0,confused,1.0,9.0,5.0,"It seems very erratic, confused and annoyed and it does not seem to know where to go, almost like it is trying to escape the box it is in."
+5eaecb0824839e59ed3523eb,,1.0,4.0,2.0,,,,,3.0,9.0,3.0,"The robot seems confused and angry that there is no way out from the box for them, that's why it moves rapidly and in no coherent order."
+602e913f090088a4ec214921,,,,5.0,,,,,1.0,9.0,9.0,Robot seems like irritated by the sound which leaving it angry and moving fast searching a way to escape
+5f0f7fe1d7ad1c000b42d091,1.0,3.0,4.0,3.0,3.0,3.0,,,3.0,9.0,2.0,The robot seemed confused and alarmed. It was darting around with it's light flashing
+5c50efd2cc71f4000125ce0d,3.0,1.0,2.0,3.0,1.0,3.0,1.0,,8.0,9.0,8.0,The robot looks like it's trying to understand what to do.
+6547cc9659e7f644c638ff4d,1.0,,3.0,2.0,,3.0,,,6.0,9.0,6.0,The robot acts very aggresiive and focused too.
+65580768f9436cc14ed21839,1.0,2.0,4.0,4.0,2.0,3.0,5.0,anxiety,2.0,9.0,5.0,"The robot looks quite nervous, it is moving quite quickly and frantically, which makes me think they are anxious or are experiencing a strong emotion "
+61282ca83be28773ac7c421f,,3.0,4.0,4.0,3.0,,4.0,frustration,1.0,9.0,5.0,It seems to appear confused or experiencing something unexpected causing it frustration or confusion and to move fast while beeping fast and loudly
+5c5ca0ce4ee81200018eaf51,1.0,,5.0,1.0,,1.0,4.0,Confusion,2.0,9.0,2.0,"The robit looks distressed and confused, as though it is looking for something that ought to be there but isn't. "
+642b3aab1e4144843eb82d33,,1.0,2.0,1.0,,1.0,,,3.0,5.0,5.0,"The robot appears confused and bewildered on where to go, maybe it is stuck within the flooring mat and cannot get out."
+5a5e14fc8e625900017626a9,4.0,1.0,1.0,1.0,1.0,4.0,,,9.0,9.0,7.0,the robot looked as though it was enjoyin itself but also trying to get out and didnt know which way to go
+5c366fc38821900001b38b67,1.0,2.0,3.0,1.0,,4.0,5.0,confusion,3.0,4.0,3.0,"The robot seemed confused, as if it was looking for an exit that it couldn't find."
+63cf80c4d375aee306c35b26,1.0,,,4.0,,1.0,,,4.0,9.0,5.0,The robot looks frustrated and angry that's what is making it move about in speed and beeping red lights.
+6156fef09d1ab07148870099,1.0,3.0,3.0,3.0,,2.0,,,3.0,7.0,7.0,it looked like it didnt know where to go
+5eb7dec5245b8670ff3536f2,4.0,,,,,3.0,3.0,happiness,8.0,6.0,7.0,The robot seems that it is enjoying freely moving around the space with no such barriers. It seems all relaxed.
+65fd99e73ff53a8211e10e71,,2.0,3.0,5.0,3.0,,,,2.0,7.0,7.0,something unpleasant happened to the orbot show it reacting angrily to it
+582f8bbd4cadc80001b0fbd3,,3.0,3.0,5.0,3.0,2.0,,,2.0,9.0,8.0,the robot is angry and frustrated maybe from not being able to go where it wants
+604e7009ec21c0e9b6990c6f,3.0,2.0,4.0,4.0,3.0,3.0,,,2.0,7.0,5.0,The robot appears confused or scared as it doesnt seem to know what to do next. It has red lights though so it may be angry and its pacing frantically
+643586e85e731b5eec977508,1.0,1.0,4.0,3.0,4.0,2.0,,,2.0,7.0,6.0,The robot is confused because it wasn't given specific instruction and allowed to move aimlessly
+5fcfb1fe79b8060e0662270a,,,1.0,3.0,,3.0,,,2.0,9.0,7.0,The robot seemed slightly annoyed and confused as if he didn't know where to go. He was moving quickly as if trying to work it out
+62b4370c9a89e5a09c4447de,1.0,4.0,4.0,4.0,3.0,3.0,,,1.0,9.0,3.0,"Looks like the robot is alarmed by something, it is very upset."
+6557ebf8541bd32382739c1a,2.0,,,,,,3.0,Curious,6.0,6.0,4.0,It looks like the robot is cheerful that why its music is kinda upbeat but the red light makes a little bit in rush.
+58bef6fd31de840001e84ba0,,,4.0,5.0,,,,,1.0,9.0,9.0,The robot looks very angry and agitated.
+64033cb754a87f6c919f305a,3.0,1.0,1.0,1.0,1.0,1.0,,,4.0,5.0,2.0," In the video, it seems like the robot is showing signs of frustration or distress. Its movements are erratic, and it emits loud beeping sounds, sugge"
+65e8c60269bf545c378b7853,4.0,,,5.0,1.0,3.0,4.0,despair,6.0,4.0,5.0,"the robot looks confused as it's figuring out what to do in it's confused state,it desires might be to control how it moves around and behave"
