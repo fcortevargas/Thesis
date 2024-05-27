@@ -1,0 +1,12 @@
+,Independent Variable,Dependent Variable,Spearman $ho$,$p$-value,Decision
+rq1.1,Wander Speed,Mean Arousal,0.556,0.0,Reject $H_0$
+rq1.2,Wander Roundness,Mean Pleasure,0.062,0.006,Reject $H_0$
+rq1.3.1,Wander Cycle Rate,Mean Arousal,-0.008,1.0,Fail to reject $H_0$
+rq1.3.2,Wander Cycle Rate,Mean Pleasure,-0.14,0.0,Reject $H_0$
+rq2.1.1,Blink Temperature,Mean Arousal,0.063,0.005,Reject $H_0$
+rq2.1.2,Blink Cycle Rate,Mean Arousal,0.027,0.874,Fail to reject $H_0$
+rq2.2,Blink Temperature,Mean Pleasure,-0.099,0.0,Reject $H_0$
+rq3.1.1,Beep Pitch,Mean Arousal,0.202,0.0,Reject $H_0$
+rq3.1.2,Beep Cycle Rate,Mean Arousal,0.111,0.0,Reject $H_0$
+rq3.2,Beep Slope,Mean Anger Intensity,-0.025,1.0,Fail to reject $H_0$
+rq3.3,Beep Slope,Mean Sadness Intensity,-0.174,0.0,Reject $H_0$

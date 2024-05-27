@@ -1,0 +1,11 @@
+Feature,Coefficient
+Wander Speed × Membership Probability of Cluster 5,-0.186
+Membership Probability of Cluster 1,0.183
+Membership Probability of Cluster 5,0.157
+Membership Probability of Cluster 4,0.104
+Beep Cycle Rate × Membership Probability of Cluster 4,0.086
+Blink Cycle Rate × Membership Probability of Cluster 5,0.082
+Blink Cycle Rate × Membership Probability of Cluster 4,-0.068
+Beep Pitch × Membership Probability of Cluster 4,0.067
+Beep Cycle Rate × Membership Probability of Cluster 1,-0.063
+Blink Cycle Rate × Membership Probability of Cluster 8,-0.06

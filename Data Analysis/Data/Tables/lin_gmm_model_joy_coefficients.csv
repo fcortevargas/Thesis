@@ -1,0 +1,11 @@
+Feature,Coefficient
+Membership Probability of Cluster 8,1.147
+Beep Cycle Rate,0.515
+Membership Probability of Cluster 3,0.429
+Membership Probability of Cluster 6,-0.32
+Membership Probability of Cluster 4,-0.303
+Blink Temperature × Membership Probability of Cluster 8,-0.289
+Membership Probability of Cluster 5,0.281
+Beep Slope,-0.276
+Wander Speed × Membership Probability of Cluster 8,-0.262
+Blink Temperature × Membership Probability of Cluster 9,-0.224
